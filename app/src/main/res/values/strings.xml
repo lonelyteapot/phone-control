@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">Phone Control</string>
-    <string name="call_screening_role_button_enabled">Phone Control is  your default call screening app</string>
-    <string name="call_screening_role_button_disabled">Set Phone Control as your default call screening app</string>
-    <string name="contacts_permission_button_enabled">Access to your contacts is allowed</string>
-    <string name="contacts_permission_button_disabled">Allow to access your contacts</string>
+    <string name="call_screening_role_button_enabled">Call screening role\nis set</string>
+    <string name="call_screening_role_button_disabled">Call screening role\nis required</string>
+    <string name="contacts_permission_button_enabled">Access to contacts\nis granted</string>
+    <string name="contacts_permission_button_disabled">Access to contacts\nis recommended</string>
     <string name="new_rule">New Rule</string>
     <string name="rule_action_silence">Silence</string>
     <string name="rule_action_ignore">Ignore</string>
@@ -11,4 +11,5 @@
     <string name="incoming_calls_from">incoming calls from</string>
     <string name="everyone_except_contacts">everyone except contacts</string>
     <string name="everyone">everyone</string>
+    <string name="rule_card_on">on</string>
 </resources>

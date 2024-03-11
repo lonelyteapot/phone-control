@@ -7,9 +7,9 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -28,10 +28,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -41,6 +41,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
@@ -49,9 +50,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.phonecontrol.R
+import dev.phonecontrol.conditional
 import dev.phonecontrol.gesturesDisabled
 import dev.phonecontrol.ui.theme.PhoneControlTheme
 import kotlinx.coroutines.launch
@@ -66,8 +70,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         viewModel = MainViewModel(applicationContext)
         setContent {
-            PhoneControlTheme {
-                // A surface container using the 'background' color from the theme
+            PhoneControlTheme(dynamicColor = false) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -99,6 +102,7 @@ class MainActivity : ComponentActivity() {
         val ruleListState = viewModel.ruleListFlow.collectAsState(initial = emptyList())
         val listState = rememberLazyListState()
         val snackbarHostState = remember { SnackbarHostState() }
+        val subscriptionsState = viewModel.subscriptionListFlow.collectAsState()
 
         val requestPermissionLauncher =
             rememberLauncherForActivityResult(RequestPermission()) { _ ->
@@ -107,6 +111,7 @@ class MainActivity : ComponentActivity() {
 
         Scaffold(
             contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars),
+            containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
             floatingActionButton = {
                 if (hasCallScreeningRoleState.value) ExtendedFloatingActionButton(
                     text = { Text(stringResource(R.string.new_rule)) },
@@ -128,11 +133,12 @@ class MainActivity : ComponentActivity() {
             Column(
                 modifier = Modifier
                     .padding(padding)
-                    .padding(horizontal = 16.dp)
                     .padding(top = 28.dp)
             ) {
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     CustomButton1(
@@ -152,7 +158,11 @@ class MainActivity : ComponentActivity() {
                     CustomButton1(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
+                            .weight(1f)
+                            .conditional(!hasCallScreeningRoleState.value) {
+                                blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                                    .gesturesDisabled()
+                            },
                         text = if (hasContactsPermissionState.value) {
                             stringResource(R.string.contacts_permission_button_enabled)
                         } else {
@@ -166,10 +176,15 @@ class MainActivity : ComponentActivity() {
                     CustomButton1(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(1f),
+                            .weight(1f)
+                            .conditional(!hasCallScreeningRoleState.value) {
+                                blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                                    .gesturesDisabled()
+                            },
                         text = "",
                         checked = hasCallScreeningRoleState.value,
                         onClick = { /*TODO*/ },
+                        noIcon = true,
                     )
                 }
                 Spacer(modifier = Modifier.height(28.dp))
@@ -183,23 +198,29 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     Text(
-                        text = "Rules",
-                        style = MaterialTheme.typography.headlineMedium,
-                        modifier = if (hasCallScreeningRoleState.value) {
-                            Modifier
-                        } else {
-                            Modifier.alpha(0.38f)
-                        },
+                        text = "Call Blocking Rules",
+                        style = MaterialTheme.typography.headlineSmall,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 8.dp)
+                            .conditional(!hasCallScreeningRoleState.value) {
+                                alpha(0.38f)
+                            },
                     )
-                    HorizontalDivider()
+                    val shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(
                             top = 16.dp,
                             bottom = 16.dp + 72.dp + WindowInsets.navigationBars.asPaddingValues()
-                                .calculateBottomPadding()
+                                .calculateBottomPadding(),
+                            start = 16.dp,
+                            end = 16.dp,
                         ),
                         state = listState,
+                        modifier = Modifier.background(MaterialTheme.colorScheme.background, shape = shape).fillMaxSize().clip(shape = shape),
                     ) {
                         items(
                             items = ruleListState.value,
@@ -220,7 +241,7 @@ class MainActivity : ComponentActivity() {
                                             return@launch
                                         }
                                         val snackbarResult = snackbarHostState.showSnackbar(
-                                            "To use this, allow us to access your contacts",
+                                            "Access to contacts is required to use this",
                                             actionLabel = "Allow",
                                             duration = SnackbarDuration.Short,
                                         )
@@ -228,10 +249,23 @@ class MainActivity : ComponentActivity() {
                                             SnackbarResult.ActionPerformed -> {
                                                 requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
                                             }
+
                                             else -> {}
                                         }
                                     }
-                                }
+                                },
+                                onRemovedSimCardClick = {
+                                    coroutineScope.launch {
+                                        if (snackbarHostState.currentSnackbarData != null) {
+                                            return@launch
+                                        }
+                                        snackbarHostState.showSnackbar(
+                                            "This SIM card has been removed",
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                    }
+                                },
+                                subscriptions = subscriptionsState.value,
                             )
                         }
                     }

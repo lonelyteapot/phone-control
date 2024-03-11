@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import dev.phonecontrol.R
 
 @Composable
-fun CustomButton1(modifier: Modifier, text: String, checked: Boolean, onClick: () -> Unit) {
+fun CustomButton1(modifier: Modifier, text: String, checked: Boolean, onClick: () -> Unit, noIcon: Boolean = false) {
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -30,7 +30,7 @@ fun CustomButton1(modifier: Modifier, text: String, checked: Boolean, onClick: (
             shape = MaterialTheme.shapes.extraLarge,
             onClick = onClick,
         ) {
-            Icon(
+            if (!noIcon) Icon(
                 painterResource(
                     id = if (checked) {
                         R.drawable.ic_checkmark

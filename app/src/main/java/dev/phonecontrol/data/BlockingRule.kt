@@ -7,6 +7,8 @@ data class BlockingRule(
     val enabled: Boolean,
     val action: Action,
     val target: Target,
+    val cardId: Int?,
+    val cardName: String?,
     val position: Int,
 ) {
     enum class Action {

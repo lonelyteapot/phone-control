@@ -23,6 +23,8 @@ private class RuleKeyFactory(val ruleId: String) {
     val enabled get() = booleanPreferencesKey("${ruleId}_enabled")
     val action get() = stringPreferencesKey("${ruleId}_action")
     val target get() = stringPreferencesKey("${ruleId}_target")
+    val cardId get() = intPreferencesKey("${ruleId}_card_id")
+    val cardName get() = stringPreferencesKey("${ruleId}_card_name")
     val position get() = intPreferencesKey("${ruleId}_position")
 }
 
@@ -34,12 +36,16 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             val enabled = preferences[keys.enabled]
             val action = preferences[keys.action]
             val target = preferences[keys.target]
+            val cardId = preferences[keys.cardId]
+            val cardName = preferences[keys.cardName]
             val position = preferences[keys.position]
             BlockingRule(
                 uuid = UUID.fromString(ruleId),
                 enabled = enabled!!,
                 action = BlockingRule.Action.valueOf(action!!),
                 target = BlockingRule.Target.valueOf(target!!),
+                cardId = cardId,
+                cardName = cardName,
                 position = position!!,
             )
         }.sortedBy { rule -> rule.position }
@@ -55,6 +61,16 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             preferences[keys.enabled] = rule.enabled
             preferences[keys.action] = rule.action.toString()
             preferences[keys.target] = rule.target.toString()
+            if (rule.cardId != null) {
+                preferences[keys.cardId] = rule.cardId
+            } else {
+                assert(preferences[keys.cardId] == null)
+            }
+            if (rule.cardName != null) {
+                preferences[keys.cardName] = rule.cardName
+            } else {
+                assert(preferences[keys.cardName] == null)
+            }
             preferences[keys.position] = rule.position
         }
     }
@@ -66,6 +82,16 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             preferences[keys.enabled] = rule.enabled
             preferences[keys.action] = rule.action.toString()
             preferences[keys.target] = rule.target.toString()
+            if (rule.cardId != null) {
+                preferences[keys.cardId] = rule.cardId
+            } else {
+                preferences.remove(keys.cardId)
+            }
+            if (rule.cardName != null) {
+                preferences[keys.cardName] = rule.cardName
+            } else {
+                preferences.remove(keys.cardName)
+            }
             preferences[keys.position] = rule.position
         }
     }
@@ -80,6 +106,8 @@ class UserPreferencesRepository(private val dataStore: DataStore<Preferences>) {
             preferences.remove(keys.enabled)
             preferences.remove(keys.action)
             preferences.remove(keys.target)
+            preferences.remove(keys.cardId)
+            preferences.remove(keys.cardName)
             preferences.remove(keys.position)
         }
     }

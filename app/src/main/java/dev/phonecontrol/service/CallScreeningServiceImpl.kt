@@ -5,6 +5,7 @@ import android.telecom.Call
 import android.telecom.CallScreeningService
 import android.util.Log
 import dev.phonecontrol.data.BlockingRule
+import dev.phonecontrol.data.PermissionsRepository
 import dev.phonecontrol.data.UserPreferencesRepository
 import dev.phonecontrol.data.dataStore
 import kotlinx.coroutines.flow.first
@@ -39,6 +40,8 @@ class CallScreeningServiceImpl : CallScreeningService() {
         }
         ruleList
             .filter { rule -> rule.enabled }
+            .filter { rule -> simMatchesRule(rule, callDetails) }
+            .filter { rule -> targetMatchesRule(rule, callDetails) }
             .forEach { rule ->
                 when (rule.action) {
                     BlockingRule.Action.SILENCE -> {
@@ -56,5 +59,29 @@ class CallScreeningServiceImpl : CallScreeningService() {
                 }
             }
         return response.build()
+    }
+
+    private fun targetMatchesRule(rule: BlockingRule, callDetails: Call.Details): Boolean {
+        return when (rule.target) {
+            BlockingRule.Target.EVERYONE -> true
+            BlockingRule.Target.NON_CONTACTS -> {
+                if (!PermissionsRepository().hasContactsPermission(applicationContext)) {
+                    // If no contacts permission then calls with contacts wouldn't be sent to us,
+                    // so this call is guaranteed to be from a non contact
+                    true
+                } else {
+                    @Suppress
+                    false // TODO implement
+                }
+            }
+        }
+    }
+
+    private fun simMatchesRule(rule: BlockingRule, callDetails: Call.Details): Boolean {
+        if (rule.cardId == null) {
+            return true
+        }
+        // TODO implement
+        return false
     }
 }
