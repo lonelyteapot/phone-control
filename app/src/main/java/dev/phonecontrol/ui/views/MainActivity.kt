@@ -1,4 +1,4 @@
-package dev.phonecontrol.ui
+package dev.phonecontrol.ui.views
 
 import android.Manifest
 import android.content.Intent
@@ -7,7 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -55,11 +55,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.phonecontrol.R
-import dev.phonecontrol.conditional
-import dev.phonecontrol.gesturesDisabled
+import dev.phonecontrol.misc.conditional
+import dev.phonecontrol.misc.gesturesDisabled
+import dev.phonecontrol.ui.components.CustomButton1
+import dev.phonecontrol.ui.components.RuleCard
 import dev.phonecontrol.ui.theme.PhoneControlTheme
 import kotlinx.coroutines.launch
-
 
 @OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
@@ -105,7 +106,7 @@ class MainActivity : ComponentActivity() {
         val subscriptionsState = viewModel.subscriptionListFlow.collectAsState()
 
         val requestPermissionLauncher =
-            rememberLauncherForActivityResult(RequestPermission()) { _ ->
+            rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
                 viewModel.checkForContactsPermission()
             }
 
@@ -220,7 +221,10 @@ class MainActivity : ComponentActivity() {
                             end = 16.dp,
                         ),
                         state = listState,
-                        modifier = Modifier.background(MaterialTheme.colorScheme.background, shape = shape).fillMaxSize().clip(shape = shape),
+                        modifier = Modifier.background(
+                            MaterialTheme.colorScheme.background,
+                            shape = shape
+                        ).fillMaxSize().clip(shape = shape),
                     ) {
                         items(
                             items = ruleListState.value,

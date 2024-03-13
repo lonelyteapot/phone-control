@@ -1,4 +1,4 @@
-package dev.phonecontrol.ui
+package dev.phonecontrol.ui.views
 
 import android.annotation.SuppressLint
 import android.app.role.RoleManager

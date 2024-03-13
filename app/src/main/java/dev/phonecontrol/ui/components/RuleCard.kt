@@ -1,4 +1,4 @@
-package dev.phonecontrol.ui
+package dev.phonecontrol.ui.components
 
 import android.Manifest
 import android.content.pm.PackageManager
@@ -42,7 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import dev.phonecontrol.R
 import dev.phonecontrol.data.BlockingRule
-import dev.phonecontrol.segmentedButtonColors
+import dev.phonecontrol.misc.segmentedButtonColors
+import dev.phonecontrol.ui.assets.simCardImageVector
 import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)

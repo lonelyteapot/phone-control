@@ -1,4 +1,4 @@
-package dev.phonecontrol.ui
+package dev.phonecontrol.ui.assets
 
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush.Companion.linearGradient

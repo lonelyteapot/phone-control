@@ -1,4 +1,4 @@
-package dev.phonecontrol
+package dev.phonecontrol.misc
 
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.SegmentedButtonColors
