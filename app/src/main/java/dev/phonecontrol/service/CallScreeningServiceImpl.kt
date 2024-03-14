@@ -1,47 +1,77 @@
 package dev.phonecontrol.service
 
+import android.Manifest
+import android.annotation.SuppressLint
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.net.Uri
+import android.os.Build
+import android.os.IBinder
 import android.telecom.Call
 import android.telecom.CallScreeningService
-import android.util.Log
+import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import dev.phonecontrol.data.BlockingRule
-import dev.phonecontrol.data.PermissionsRepository
 import dev.phonecontrol.data.UserPreferencesRepository
 import dev.phonecontrol.data.dataStore
+import dev.phonecontrol.misc.logi
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-class CallScreeningServiceImpl : CallScreeningService() {
-    private val TAG = "CallScreeningServiceImpl"
 
-    override fun onScreenCall(callDetails: Call.Details) {
-        val response = handleCall(callDetails)
-        Log.i(TAG, "Responding: disallow=${response.disallowCall}, silence=${response.silenceCall}, reject=${response.rejectCall}")
-        respondToCall(callDetails, response)
+class CallScreeningServiceImpl : CallScreeningService() {
+    private lateinit var coroutineScope: CoroutineScope;
+
+    override fun onBind(intent: Intent?): IBinder? {
+        coroutineScope = MainScope()
+        return super.onBind(intent)
     }
 
-    private fun handleCall(callDetails: Call.Details): CallResponse {
+    override fun onUnbind(intent: Intent?): Boolean {
+        coroutineScope.cancel("CallScreeningService has been unbound by the system")
+        return super.onUnbind(intent)
+    }
+
+    override fun onScreenCall(callDetails: Call.Details) {
+        val callInfo = MyCallInfo(callDetails)
+        logi("Receiving a call from/to '${callInfo.phoneNumber}'")
+
+        coroutineScope.launch {
+            val response = processCall(callInfo).build()
+            logi("Responding: disallow=${response.disallowCall}, silence=${response.silenceCall}, reject=${response.rejectCall}")
+            respondToCall(callDetails, response)
+        }
+    }
+
+    private suspend fun processCall(callInfo: MyCallInfo): CallResponse.Builder {
         val response = CallResponse.Builder()
 
-        val phoneNumber: Uri = callDetails.handle
-
-        Log.i(TAG, "Receiving a call from/to `$phoneNumber`...")
-
-        val isIncoming = callDetails.callDirection == Call.Details.DIRECTION_INCOMING
-        if (!isIncoming) {
-            Log.i(TAG, "The call is outgoing or unknown, ignoring")
-            return response.build();
+        if (callInfo.callDirection != Call.Details.DIRECTION_INCOMING) {
+            logi("Call direction is not incoming, ignoring")
+            return response;
         }
 
         val userPreferencesRepository = UserPreferencesRepository(applicationContext.dataStore)
 
+        val contactChecker = if (hasContactsPermission()) {
+            ContactChecker(applicationContext, callInfo.phoneNumber)
+        } else {
+            null
+        }
+        val simChecker = SimChecker(applicationContext, callInfo.phoneNumber)
+
         val ruleList = runBlocking {
             userPreferencesRepository.ruleListFlow.first()
         }
+
         ruleList
             .filter { rule -> rule.enabled }
-            .filter { rule -> simMatchesRule(rule, callDetails) }
-            .filter { rule -> targetMatchesRule(rule, callDetails) }
+            .filter { rule -> simMatchesRule(rule, callInfo, simChecker) }
+            .filter { rule -> targetMatchesRule(rule, callInfo, contactChecker) }
             .forEach { rule ->
                 when (rule.action) {
                     BlockingRule.Action.SILENCE -> {
@@ -58,30 +88,57 @@ class CallScreeningServiceImpl : CallScreeningService() {
                     }
                 }
             }
-        return response.build()
+        return response
     }
 
-    private fun targetMatchesRule(rule: BlockingRule, callDetails: Call.Details): Boolean {
+    private fun targetMatchesRule(rule: BlockingRule, callInfo: MyCallInfo, contactChecker: ContactChecker?): Boolean {
         return when (rule.target) {
             BlockingRule.Target.EVERYONE -> true
             BlockingRule.Target.NON_CONTACTS -> {
-                if (!PermissionsRepository().hasContactsPermission(applicationContext)) {
-                    // If no contacts permission then calls with contacts wouldn't be sent to us,
-                    // so this call is guaranteed to be from a non contact
-                    true
-                } else {
-                    @Suppress
-                    false // TODO implement
-                }
+                // contactChecker is only null when our app doesn't have permission to read contacts.
+                // In that case, all calls sent to onScreenCall are guaranteed by Android to NOT be from contacts.
+                !(contactChecker?.isNumberInContacts ?: false)
             }
         }
     }
 
-    private fun simMatchesRule(rule: BlockingRule, callDetails: Call.Details): Boolean {
+    // TODO permission check
+    @SuppressLint("MissingPermission")
+    private suspend fun simMatchesRule(rule: BlockingRule, callInfo: MyCallInfo, simChecker: SimChecker): Boolean {
         if (rule.cardId == null) {
             return true
         }
-        // TODO implement
-        return false
+        val subscriptionInfo = simChecker.getCachedSubscriptionInfo()
+            ?: return false // if null, failed to detect the sim card
+        return subscriptionInfo.cardId == rule.cardId
+    }
+
+    private fun hasContactsPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            applicationContext,
+            Manifest.permission.READ_CONTACTS
+        ) == PackageManager.PERMISSION_GRANTED
     }
 }
+
+class MyCallInfo(private val callDetails: Call.Details) {
+    val phoneNumber: String = callDetails.handle.schemeSpecificPart
+
+    val callDirection: Int
+        get() = callDetails.callDirection
+
+    val callerNumberVerificationStatus: Int
+        @RequiresApi(Build.VERSION_CODES.R)
+        get() = callDetails.callerNumberVerificationStatus
+
+    val connectTimeMillis: Long
+        get() = callDetails.connectTimeMillis
+
+    val creationTimeMillis: Long
+        get() = callDetails.creationTimeMillis
+
+    // handle.scheme is always PhoneAccount#SCHEME_TEL
+    val handle: Uri
+        get() = callDetails.handle
+}
+
