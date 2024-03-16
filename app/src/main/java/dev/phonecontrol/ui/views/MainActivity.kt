@@ -8,7 +8,6 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -35,10 +34,8 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -58,11 +55,10 @@ import dev.phonecontrol.R
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.gesturesDisabled
 import dev.phonecontrol.ui.components.CustomButton1
-import dev.phonecontrol.ui.components.RuleCard
+import dev.phonecontrol.ui.components.RuleCard2
 import dev.phonecontrol.ui.theme.PhoneControlTheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 class MainActivity : ComponentActivity() {
     private lateinit var viewModel: MainViewModel
 
@@ -210,67 +206,83 @@ class MainActivity : ComponentActivity() {
                                 alpha(0.38f)
                             },
                     )
-                    val shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+                    val shape = RoundedCornerShape(topStart = 32.dp, topEnd = 32.dp)
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(
-                            top = 16.dp,
+                            top = 24.dp,
                             bottom = 16.dp + 72.dp + WindowInsets.navigationBars.asPaddingValues()
                                 .calculateBottomPadding(),
                             start = 16.dp,
                             end = 16.dp,
                         ),
                         state = listState,
-                        modifier = Modifier.background(
-                            MaterialTheme.colorScheme.background,
-                            shape = shape
-                        ).fillMaxSize().clip(shape = shape),
+                        modifier = Modifier
+                            .background(
+                                MaterialTheme.colorScheme.background,
+                                shape = shape
+                            )
+                            .fillMaxSize()
+                            .clip(shape = shape),
                     ) {
                         items(
                             items = ruleListState.value,
                             key = { rule -> rule.uuid }
                         ) { rule ->
-                            RuleCard(
+                            val subscription = if (rule.cardId == null) null else {
+                                subscriptionsState.value.firstOrNull { subscription ->
+                                    subscription.cardId == rule.cardId
+                                }
+                            }
+                            RuleCard2(
                                 rule = rule,
-                                deleteRule = {
-                                    viewModel.deleteRule(rule)
+                                onCheckedChange = { checked ->
+                                    viewModel.updateRule(rule.copy(enabled = checked))
                                 },
-                                updateRule = { newRule ->
-                                    viewModel.updateRule(newRule)
-                                },
-                                modifier = Modifier.animateItemPlacement(),
-                                onEveryoneDisabledClick = {
-                                    coroutineScope.launch {
-                                        if (snackbarHostState.currentSnackbarData != null) {
-                                            return@launch
-                                        }
-                                        val snackbarResult = snackbarHostState.showSnackbar(
-                                            "Access to contacts is required to use this",
-                                            actionLabel = "Allow",
-                                            duration = SnackbarDuration.Short,
-                                        )
-                                        when (snackbarResult) {
-                                            SnackbarResult.ActionPerformed -> {
-                                                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-                                            }
-
-                                            else -> {}
-                                        }
-                                    }
-                                },
-                                onRemovedSimCardClick = {
-                                    coroutineScope.launch {
-                                        if (snackbarHostState.currentSnackbarData != null) {
-                                            return@launch
-                                        }
-                                        snackbarHostState.showSnackbar(
-                                            "This SIM card has been removed",
-                                            duration = SnackbarDuration.Short,
-                                        )
-                                    }
-                                },
-                                subscriptions = subscriptionsState.value,
+                                onClick = { /*TODO*/ },
+                                subscription = subscription,
                             )
+//                            RuleCard(
+//                                rule = rule,
+//                                deleteRule = {
+//                                    viewModel.deleteRule(rule)
+//                                },
+//                                updateRule = { newRule ->
+//                                    viewModel.updateRule(newRule)
+//                                },
+//                                modifier = Modifier.animateItemPlacement(),
+//                                onEveryoneDisabledClick = {
+//                                    coroutineScope.launch {
+//                                        if (snackbarHostState.currentSnackbarData != null) {
+//                                            return@launch
+//                                        }
+//                                        val snackbarResult = snackbarHostState.showSnackbar(
+//                                            "Access to contacts is required to use this",
+//                                            actionLabel = "Allow",
+//                                            duration = SnackbarDuration.Short,
+//                                        )
+//                                        when (snackbarResult) {
+//                                            SnackbarResult.ActionPerformed -> {
+//                                                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+//                                            }
+//
+//                                            else -> {}
+//                                        }
+//                                    }
+//                                },
+//                                onRemovedSimCardClick = {
+//                                    coroutineScope.launch {
+//                                        if (snackbarHostState.currentSnackbarData != null) {
+//                                            return@launch
+//                                        }
+//                                        snackbarHostState.showSnackbar(
+//                                            "This SIM card has been removed",
+//                                            duration = SnackbarDuration.Short,
+//                                        )
+//                                    }
+//                                },
+//                                subscriptions = subscriptionsState.value,
+//                            )
                         }
                     }
                 }
