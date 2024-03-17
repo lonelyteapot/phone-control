@@ -156,9 +156,9 @@ fun RuleCard2(
                             // TODO localization
                             Text(
                                 text = if (rule.cardId == null) {
-                                    "Any SIM card"
+                                    stringResource(R.string.all_sim_cards)
                                 } else {
-                                    rule.cardName ?: "Unknown SIM card"
+                                    rule.cardName ?: stringResource(R.string.unknown_sim_card)
                                 },
                                 maxLines = 1,
                             )

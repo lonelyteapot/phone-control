@@ -8,8 +8,11 @@
     <string name="rule_action_silence">Silence</string>
     <string name="rule_action_ignore">Ignore</string>
     <string name="rule_action_decline">Decline</string>
-    <string name="incoming_calls_from">incoming calls from</string>
+    <string name="incoming_calls_from">calls from</string>
     <string name="everyone_except_contacts">everyone except contacts</string>
     <string name="everyone">everyone</string>
     <string name="rule_card_on">on</string>
+    <string name="all_sim_cards">All SIM cards</string>
+    <string name="unknown_sim_card">Unknown SIM card</string>
+    <string name="call_blocking_rules">Call Blocking Rules</string>
 </resources>
