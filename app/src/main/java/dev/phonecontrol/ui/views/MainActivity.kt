@@ -58,6 +58,7 @@ import dev.phonecontrol.R
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.gesturesDisabled
 import dev.phonecontrol.ui.components.CustomButton1
+import dev.phonecontrol.ui.components.NewRuleCard
 import dev.phonecontrol.ui.components.RuleCard2
 import dev.phonecontrol.ui.theme.PhoneControlTheme
 import kotlinx.coroutines.launch
@@ -113,20 +114,6 @@ class MainActivity : ComponentActivity() {
         Scaffold(
             contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars),
             containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
-            floatingActionButton = {
-                if (hasCallScreeningRoleState.value) ExtendedFloatingActionButton(
-                    text = { Text(stringResource(R.string.new_rule)) },
-                    icon = { Icon(Icons.Default.Add, contentDescription = null) },
-                    onClick = {
-                        coroutineScope.launch {
-                            viewModel.createNewRule(ruleListState.value.size)
-                            // TODO -1 lastIndex
-                            listState.animateScrollToItem(ruleListState.value.lastIndex)
-                        }
-                    },
-                    modifier = Modifier.navigationBarsPadding(),
-                )
-            },
             snackbarHost = {
                 SnackbarHost(snackbarHostState)
             },
@@ -227,7 +214,7 @@ class MainActivity : ComponentActivity() {
                         verticalArrangement = Arrangement.spacedBy(16.dp),
                         contentPadding = PaddingValues(
                             top = 24.dp,
-                            bottom = 16.dp + 72.dp + WindowInsets.navigationBars.asPaddingValues()
+                            bottom = 16.dp + WindowInsets.navigationBars.asPaddingValues()
                                 .calculateBottomPadding(),
                             start = 16.dp,
                             end = 16.dp,
@@ -281,33 +268,6 @@ class MainActivity : ComponentActivity() {
                                 modifier = Modifier.animateItemPlacement(),
                             )
 //                            RuleCard(
-//                                rule = rule,
-//                                deleteRule = {
-//                                    viewModel.deleteRule(rule)
-//                                },
-//                                updateRule = { newRule ->
-//                                    viewModel.updateRule(newRule)
-//                                },
-//                                modifier = Modifier.animateItemPlacement(),
-//                                onEveryoneDisabledClick = {
-//                                    coroutineScope.launch {
-//                                        if (snackbarHostState.currentSnackbarData != null) {
-//                                            return@launch
-//                                        }
-//                                        val snackbarResult = snackbarHostState.showSnackbar(
-//                                            "Access to contacts is required to use this",
-//                                            actionLabel = "Allow",
-//                                            duration = SnackbarDuration.Short,
-//                                        )
-//                                        when (snackbarResult) {
-//                                            SnackbarResult.ActionPerformed -> {
-//                                                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-//                                            }
-//
-//                                            else -> {}
-//                                        }
-//                                    }
-//                                },
 //                                onRemovedSimCardClick = {
 //                                    coroutineScope.launch {
 //                                        if (snackbarHostState.currentSnackbarData != null) {
@@ -319,8 +279,17 @@ class MainActivity : ComponentActivity() {
 //                                        )
 //                                    }
 //                                },
-//                                subscriptions = subscriptionsState.value,
 //                            )
+                        }
+                        item(key = "new_rule") {
+                            NewRuleCard(
+                                modifier = Modifier.animateItemPlacement(),
+                                onClick = {
+                                    coroutineScope.launch {
+                                        viewModel.createNewRule(ruleListState.value.size)
+                                    }
+                                },
+                            )
                         }
                     }
                 }

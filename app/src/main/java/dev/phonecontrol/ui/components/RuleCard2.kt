@@ -56,6 +56,8 @@ import java.util.UUID
 
 private const val ANIMATION_DURATION_MS = 300
 
+val ruleCardShape = RoundedCornerShape(16.dp)
+
 private fun <T> slideLeftTransitionSpec(): AnimatedContentTransitionScope<T>.() -> ContentTransform {
     return {
         slideInHorizontally(tween(ANIMATION_DURATION_MS)) { width -> width } + fadeIn(
@@ -128,7 +130,7 @@ fun RuleCard2(
 
     ElevatedCard(
         colors = elevatedCardColors(enabled = rule.enabled),
-        shape = RoundedCornerShape(16.dp),
+        shape = ruleCardShape,
         modifier = Modifier
             .fillMaxWidth()
             .then(modifier),
