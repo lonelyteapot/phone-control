@@ -236,11 +236,11 @@ class MainActivity : ComponentActivity() {
                             }
                             RuleCard2(
                                 rule = rule,
-                                onCheckedChange = { checked ->
-                                    viewModel.updateRule(rule.copy(enabled = checked))
+                                onUpdateRule = { newRule ->
+                                    viewModel.updateRule(newRule)
                                 },
-                                onClick = { /*TODO*/ },
                                 subscription = subscription,
+                                subscriptionList = subscriptionsState.value,
                             )
 //                            RuleCard(
 //                                rule = rule,
