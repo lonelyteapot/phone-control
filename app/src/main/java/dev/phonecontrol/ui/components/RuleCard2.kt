@@ -1,5 +1,6 @@
 package dev.phonecontrol.ui.components
 
+import android.Manifest
 import android.telephony.SubscriptionInfo
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -38,15 +39,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import dev.phonecontrol.R
 import dev.phonecontrol.data.BlockingRule
 import dev.phonecontrol.misc.conditional
+import dev.phonecontrol.misc.isPermissionGranted
 import dev.phonecontrol.ui.assets.simCardImageVector
 import java.util.UUID
 
@@ -72,9 +76,12 @@ fun RuleCard2(
     modifier: Modifier = Modifier,
     onUpdateRule: (newRule: BlockingRule) -> Unit,
     onDeleteClick: () -> Unit,
+    onNoContactsPermission: () -> Unit = {},
     subscription: SubscriptionInfo?,
     subscriptionList: List<SubscriptionInfo>,
 ) {
+    val context = LocalContext.current
+
     fun cycleRuleAction() {
         val action = when (rule.action) {
             BlockingRule.Action.SILENCE -> BlockingRule.Action.BLOCK
@@ -87,7 +94,13 @@ fun RuleCard2(
     fun cycleRuleTarget() {
         val target = when (rule.target) {
             BlockingRule.Target.EVERYONE -> BlockingRule.Target.NON_CONTACTS
-            BlockingRule.Target.NON_CONTACTS -> BlockingRule.Target.EVERYONE
+            BlockingRule.Target.NON_CONTACTS -> {
+                if (!context.isPermissionGranted(Manifest.permission.READ_CONTACTS)) {
+                    onNoContactsPermission()
+                    return
+                }
+                BlockingRule.Target.EVERYONE
+            }
         }
         onUpdateRule(rule.copy(target = target))
     }
@@ -306,6 +319,7 @@ private fun RuleTargetChip(
         BlockingRule.Target.EVERYONE -> R.string.everyone
         BlockingRule.Target.NON_CONTACTS -> R.string.everyone_except_contacts
     }
+    val strikethrough = target == BlockingRule.Target.EVERYONE && !LocalContext.current.isPermissionGranted(Manifest.permission.READ_CONTACTS)
 
     FilterChip(
         modifier = modifier,
@@ -318,7 +332,11 @@ private fun RuleTargetChip(
                 label = "AnimatedText",
                 transitionSpec = slideLeftTransitionSpec(),
             ) { targetId ->
-                Text(stringResource(targetId), maxLines = 1)
+                Text(
+                    stringResource(targetId),
+                    maxLines = 1,
+                    textDecoration = if (strikethrough) TextDecoration.LineThrough else null,
+                )
             }
         },
     )

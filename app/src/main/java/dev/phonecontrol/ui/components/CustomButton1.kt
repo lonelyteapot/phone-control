@@ -47,6 +47,7 @@ fun CustomButton1(modifier: Modifier, text: String, checked: Boolean, onClick: (
             modifier = Modifier.fillMaxWidth(),
             text = text,
             textAlign = TextAlign.Center,
+            minLines = 2,
             style = MaterialTheme.typography.labelMedium,
         )
     }

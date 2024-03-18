@@ -35,8 +35,10 @@ import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
@@ -132,14 +134,44 @@ class MainActivity : ComponentActivity() {
             Column(
                 modifier = Modifier
                     .padding(padding)
-                    .padding(top = 28.dp)
+                    .padding(top = 16.dp)
             ) {
+                Text(
+                    text = stringResource(R.string.permissions_header),
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .padding(bottom = 24.dp)
+                        .conditional(!hasCallScreeningRoleState.value) {
+                            alpha(0.38f)
+                        },
+                )
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
+                    CustomButton1(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f)
+                            .conditional(!hasCallScreeningRoleState.value) {
+                                blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
+                                    .gesturesDisabled()
+                            },
+                        text = if (hasContactsPermissionState.value) {
+                            stringResource(R.string.contacts_permission_button_enabled)
+                        } else {
+                            stringResource(R.string.contacts_permission_button_disabled)
+                        },
+                        checked = hasContactsPermissionState.value,
+                        onClick = {
+                            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+                        },
+                    )
                     CustomButton1(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -162,31 +194,13 @@ class MainActivity : ComponentActivity() {
                                 blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
                                     .gesturesDisabled()
                             },
-                        text = if (hasContactsPermissionState.value) {
-                            stringResource(R.string.contacts_permission_button_enabled)
-                        } else {
-                            stringResource(R.string.contacts_permission_button_disabled)
-                        },
-                        checked = hasContactsPermissionState.value,
-                        onClick = {
-                            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-                        },
-                    )
-                    CustomButton1(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f)
-                            .conditional(!hasCallScreeningRoleState.value) {
-                                blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
-                                    .gesturesDisabled()
-                            },
                         text = "",
                         checked = hasCallScreeningRoleState.value,
                         onClick = { /*TODO*/ },
                         noIcon = true,
                     )
                 }
-                Spacer(modifier = Modifier.height(28.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 Column(
                     modifier = if (hasCallScreeningRoleState.value) {
                         Modifier
@@ -197,7 +211,7 @@ class MainActivity : ComponentActivity() {
                     }
                 ) {
                     Text(
-                        text = "Call Blocking Rules",
+                        text = stringResource(id = R.string.rules_header),
                         style = MaterialTheme.typography.headlineSmall,
                         textAlign = TextAlign.Center,
                         modifier = Modifier
@@ -243,6 +257,24 @@ class MainActivity : ComponentActivity() {
                                 },
                                 onDeleteClick = {
                                     viewModel.deleteRule(rule)
+                                },
+                                onNoContactsPermission = {
+                                    coroutineScope.launch {
+                                        if (snackbarHostState.currentSnackbarData != null) {
+                                            return@launch
+                                        }
+                                        val snackbarResult = snackbarHostState.showSnackbar(
+                                            "Access to contacts is required to use this",
+                                            actionLabel = "Allow",
+                                            duration = SnackbarDuration.Short,
+                                        )
+                                        when (snackbarResult) {
+                                            SnackbarResult.ActionPerformed -> {
+                                                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+                                            }
+                                            else -> {}
+                                        }
+                                    }
                                 },
                                 subscription = subscription,
                                 subscriptionList = subscriptionsState.value,
