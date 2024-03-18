@@ -14,17 +14,21 @@ import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChipDefaults
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -39,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
 import dev.phonecontrol.R
 import dev.phonecontrol.data.BlockingRule
 import dev.phonecontrol.misc.conditional
@@ -66,6 +71,7 @@ fun RuleCard2(
     rule: BlockingRule,
     modifier: Modifier = Modifier,
     onUpdateRule: (newRule: BlockingRule) -> Unit,
+    onDeleteClick: () -> Unit,
     subscription: SubscriptionInfo?,
     subscriptionList: List<SubscriptionInfo>,
 ) {
@@ -177,27 +183,48 @@ fun RuleCard2(
                     .padding(vertical = 8.dp)
                     .alpha(0.38f)
             )
-            Switch(
-                checked = rule.enabled,
-                onCheckedChange = { checked ->
-                    onUpdateRule(rule.copy(enabled = checked))
-                },
-                modifier = Modifier
-                    .padding(vertical = 8.dp, horizontal = 16.dp)
-                    .align(Alignment.CenterVertically),
-                thumbContent = if (rule.enabled) {
-                    {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_checkmark),
-                            contentDescription = null,
-                            tint = Color.Unspecified,
-                            modifier = Modifier.size(SwitchDefaults.IconSize),
-                        )
+            ConstraintLayout(modifier = Modifier.fillMaxHeight()) {
+                val (switch, deleteButton) = createRefs()
+                Switch(
+                    checked = rule.enabled,
+                    onCheckedChange = { checked ->
+                        onUpdateRule(rule.copy(enabled = checked))
+                    },
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp)
+                        .constrainAs(switch) {
+                            centerTo(parent)
+                        },
+                    thumbContent = if (rule.enabled) {
+                        {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_checkmark),
+                                contentDescription = null,
+                                tint = Color.Unspecified,
+                                modifier = Modifier.size(SwitchDefaults.IconSize),
+                            )
+                        }
+                    } else {
+                        null
                     }
-                } else {
-                    null
+                )
+                IconButton(
+                    modifier = Modifier.constrainAs(deleteButton) {
+                        centerHorizontallyTo(parent)
+                        top.linkTo(switch.bottom)
+                        bottom.linkTo(parent.bottom)
+                    },
+                    onClick = onDeleteClick,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.ic_trash),
+                        contentDescription = null,
+                        tint = LocalContentColor.current,
+                        modifier = Modifier
+                            .size(ButtonDefaults.IconSize)
+                    )
                 }
-            )
+            }
         }
     }
 }
@@ -369,6 +396,7 @@ private fun RuleCard2Preview() {
             position = 0,
         ),
         onUpdateRule = {},
+        onDeleteClick = {},
         subscription = null,
         subscriptionList = emptyList(),
     )
@@ -388,6 +416,7 @@ private fun RuleCard2Preview2() {
             position = 0,
         ),
         onUpdateRule = {},
+        onDeleteClick = {},
         subscription = null,
         subscriptionList = emptyList(),
     )

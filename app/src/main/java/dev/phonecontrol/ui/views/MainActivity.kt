@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -91,6 +92,7 @@ class MainActivity : ComponentActivity() {
         viewModel.checkForContactsPermission()
     }
 
+    @OptIn(ExperimentalFoundationApi::class)
     @Composable
     fun PhoneControlApp() {
         val coroutineScope = rememberCoroutineScope()
@@ -239,8 +241,12 @@ class MainActivity : ComponentActivity() {
                                 onUpdateRule = { newRule ->
                                     viewModel.updateRule(newRule)
                                 },
+                                onDeleteClick = {
+                                    viewModel.deleteRule(rule)
+                                },
                                 subscription = subscription,
                                 subscriptionList = subscriptionsState.value,
+                                modifier = Modifier.animateItemPlacement(),
                             )
 //                            RuleCard(
 //                                rule = rule,
