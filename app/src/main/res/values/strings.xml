@@ -1,9 +1,7 @@
 <resources>
     <string name="app_name">Phone Control</string>
-    <string name="call_screening_role_button_enabled">Call screening role</string>
-    <string name="call_screening_role_button_disabled">Call screening role</string>
-    <string name="contacts_permission_button_enabled">Access to contacts</string>
-    <string name="contacts_permission_button_disabled">Access to contacts (recommended)</string>
+    <string name="perm_call_screening_role_label">Call screening role</string>
+    <string name="perm_read_contacts_label">Contacts access</string>
     <string name="new_rule">New Rule</string>
     <string name="rule_action_silence">Silence</string>
     <string name="rule_action_ignore">Ignore</string>
@@ -16,4 +14,8 @@
     <string name="unknown_sim_card">Unknown SIM card</string>
     <string name="rules_header">Rules</string>
     <string name="permissions_header">Permissions</string>
+    <string name="perm_read_phone_state_access">Phone access</string>
+    <string name="perm_call_screening_role_description">for identifying and blocking calls</string>
+    <string name="perm_read_phone_state_description">for detecting SIM cards</string>
+    <string name="perm_read_contacts_description">for blocking calls coming from contacts</string>
 </resources>
