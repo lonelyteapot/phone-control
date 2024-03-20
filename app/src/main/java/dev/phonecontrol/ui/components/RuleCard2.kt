@@ -52,6 +52,7 @@ import dev.phonecontrol.data.BlockingRule
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.isPermissionGranted
 import dev.phonecontrol.ui.assets.simCardImageVector
+import dev.phonecontrol.ui.views.PermissionsState
 import java.util.UUID
 
 private const val ANIMATION_DURATION_MS = 300
@@ -81,8 +82,13 @@ fun RuleCard2(
     onNoContactsPermission: () -> Unit = {},
     subscription: SubscriptionInfo?,
     subscriptionList: List<SubscriptionInfo>,
+    permissionsState: PermissionsState,
 ) {
     val context = LocalContext.current
+    val simSwitchEnabled =
+        rule.enabled && (permissionsState.hasReadPhoneStatePermission || rule.cardId != null)
+    val isRuleWorking =
+        rule.enabled && (rule.cardId == null || permissionsState.hasReadPhoneStatePermission)
 
     fun cycleRuleAction() {
         val action = when (rule.action) {
@@ -181,13 +187,16 @@ fun RuleCard2(
                         textAlign = TextAlign.Start,
                         maxLines = 1,
                         modifier = Modifier
-                            .padding(start = 2.dp, end = 16.dp),
+                            .padding(start = 2.dp, end = 16.dp)
+                            .conditional(rule.enabled && !simSwitchEnabled) {
+                                alpha(0.38f)
+                            },
                     )
                     RuleSimCardChip(
                         cardId = rule.cardId,
                         cardName = rule.cardName,
                         iconTint = subscription?.iconTint,
-                        enabled = rule.enabled,
+                        enabled = simSwitchEnabled,
                         onClick = { cycleSimCard() },
                         modifier = Modifier.weight(1f),
                     )
@@ -213,7 +222,11 @@ fun RuleCard2(
                     thumbContent = if (rule.enabled) {
                         {
                             Icon(
-                                painter = painterResource(id = R.drawable.ic_checkmark),
+                                painter = painterResource(if (isRuleWorking) {
+                                    R.drawable.ic_checkmark
+                                } else {
+                                    R.drawable.ic_close
+                                }),
                                 contentDescription = null,
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),
@@ -321,7 +334,8 @@ private fun RuleTargetChip(
         BlockingRule.Target.EVERYONE -> R.string.everyone
         BlockingRule.Target.NON_CONTACTS -> R.string.everyone_except_contacts
     }
-    val strikethrough = target == BlockingRule.Target.EVERYONE && !LocalContext.current.isPermissionGranted(Manifest.permission.READ_CONTACTS)
+    val strikethrough =
+        target == BlockingRule.Target.EVERYONE && !LocalContext.current.isPermissionGranted(Manifest.permission.READ_CONTACTS)
 
     FilterChip(
         modifier = modifier,
@@ -419,6 +433,7 @@ private fun RuleCard2Preview() {
         onDeleteClick = {},
         subscription = null,
         subscriptionList = emptyList(),
+        permissionsState = PermissionsState.empty(),
     )
 }
 
@@ -439,5 +454,6 @@ private fun RuleCard2Preview2() {
         onDeleteClick = {},
         subscription = null,
         subscriptionList = emptyList(),
+        permissionsState = PermissionsState.empty(),
     )
 }

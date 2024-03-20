@@ -100,7 +100,7 @@ fun PhoneControlApp(
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
-    val permissionState by permissionsViewModel.stateFlow.collectAsState()
+    val permissionsState by permissionsViewModel.stateFlow.collectAsState()
 
     val ruleListState = viewModel.ruleListFlow.collectAsState(initial = emptyList())
     val listState = rememberLazyListState()
@@ -158,7 +158,7 @@ fun PhoneControlApp(
                         .weight(1f),
                     text = stringResource(R.string.perm_call_screening_role_label),
                     bottomText = stringResource(R.string.perm_call_screening_role_description),
-                    checked = permissionState.hasCallScreeningRole,
+                    checked = permissionsState.hasCallScreeningRole,
                     onClick = {
                         requestCallScreeningRole()
                     },
@@ -167,13 +167,13 @@ fun PhoneControlApp(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .conditional(!permissionState.hasCallScreeningRole) {
+                        .conditional(!permissionsState.hasCallScreeningRole) {
                             blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
                                 .gesturesDisabled()
                         },
                     text = stringResource(R.string.perm_read_phone_state_access),
                     bottomText = stringResource(R.string.perm_read_phone_state_description),
-                    checked = permissionState.hasReadPhoneStatePermission,
+                    checked = permissionsState.hasReadPhoneStatePermission,
                     onClick = {
                           requestPermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
                     },
@@ -182,13 +182,13 @@ fun PhoneControlApp(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .conditional(!permissionState.hasCallScreeningRole) {
+                        .conditional(!permissionsState.hasCallScreeningRole) {
                             blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
                                 .gesturesDisabled()
                         },
                     text = stringResource(R.string.perm_read_contacts_label),
                     bottomText = stringResource(R.string.perm_read_contacts_description),
-                    checked = permissionState.hasReadContactsPermission,
+                    checked = permissionsState.hasReadContactsPermission,
                     onClick = {
                         requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
                     },
@@ -196,7 +196,7 @@ fun PhoneControlApp(
             }
             Spacer(modifier = Modifier.height(16.dp))
             Column(
-                modifier = Modifier.conditional(!permissionState.hasCallScreeningRole) {
+                modifier = Modifier.conditional(!permissionsState.hasCallScreeningRole) {
                     blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
                         .gesturesDisabled()
                 }
@@ -209,7 +209,7 @@ fun PhoneControlApp(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 8.dp)
-                        .conditional(!permissionState.hasCallScreeningRole) {
+                        .conditional(!permissionsState.hasCallScreeningRole) {
                             alpha(0.38f)
                         },
                 )
@@ -270,6 +270,7 @@ fun PhoneControlApp(
                             },
                             subscription = subscription,
                             subscriptionList = subscriptionsState.value,
+                            permissionsState = permissionsState,
                             modifier = Modifier.animateItemPlacement(),
                         )
 //                            RuleCard(
