@@ -120,6 +120,10 @@ fun PhoneControlApp(
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
             permissionsViewModel.updatePermissionState()
         }
+    val requestMultiplePermissionsLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
+            permissionsViewModel.updatePermissionState()
+        }
     val startActivityForResultLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {_ ->
             permissionsViewModel.updatePermissionState()
@@ -232,7 +236,10 @@ fun PhoneControlApp(
                     text = stringResource(R.string.perm_read_phone_state_access),
                     checked = permissionsState.hasReadPhoneStatePermission,
                     onClick = {
-                          requestPermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
+                        requestMultiplePermissionsLauncher.launch(arrayOf(
+                            Manifest.permission.READ_PHONE_STATE,
+                            Manifest.permission.READ_CALL_LOG,
+                        ))
                     },
                 )
                 CustomButton1(

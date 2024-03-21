@@ -87,10 +87,12 @@ fun RuleCard2(
     permissionsState: PermissionsState,
 ) {
     val context = LocalContext.current
+    val canAccessSimCards =
+        permissionsState.hasReadPhoneStatePermission && permissionsState.hasReadCallLogPermission
     val simSwitchEnabled =
-        rule.enabled && (permissionsState.hasReadPhoneStatePermission || rule.cardId != null)
+        rule.enabled && (canAccessSimCards || rule.cardId != null)
     val isRuleWorking =
-        rule.enabled && (rule.cardId == null || permissionsState.hasReadPhoneStatePermission)
+        rule.enabled && (rule.cardId == null || canAccessSimCards)
 
     fun cycleRuleAction() {
         val action = when (rule.action) {
@@ -226,11 +228,13 @@ fun RuleCard2(
                     thumbContent = if (rule.enabled) {
                         {
                             Icon(
-                                painter = painterResource(if (isRuleWorking) {
-                                    R.drawable.ic_checkmark
-                                } else {
-                                    R.drawable.ic_close
-                                }),
+                                painter = painterResource(
+                                    if (isRuleWorking) {
+                                        R.drawable.ic_checkmark
+                                    } else {
+                                        R.drawable.ic_close
+                                    }
+                                ),
                                 contentDescription = null,
                                 tint = Color.Unspecified,
                                 modifier = Modifier.size(SwitchDefaults.IconSize),

@@ -30,11 +30,13 @@ class PermissionsViewModel(private val application: Application) : ViewModel() {
         val callScreening = roleManager?.isRoleHeld(RoleManager.ROLE_CALL_SCREENING) == true
         val readContacts = checkPermission(Manifest.permission.READ_CONTACTS)
         val readPhoneState = checkPermission(Manifest.permission.READ_PHONE_STATE)
+        val readCallLog = checkPermission(Manifest.permission.READ_CALL_LOG)
 
         return PermissionsState(
             hasCallScreeningRole = callScreening,
             hasReadContactsPermission = readContacts,
             hasReadPhoneStatePermission = readPhoneState,
+            hasReadCallLogPermission = readCallLog,
         )
     }
 

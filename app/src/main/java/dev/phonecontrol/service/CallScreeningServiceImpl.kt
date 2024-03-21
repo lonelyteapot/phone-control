@@ -108,6 +108,7 @@ class CallScreeningServiceImpl : CallScreeningService() {
         if (rule.cardId == null) {
             return true
         }
+        // TODO: check for permissions to avoid timeout
         val subscriptionInfo = simChecker.getCachedSubscriptionInfo()
             ?: return false // if null, failed to detect the sim card
         return subscriptionInfo.cardId == rule.cardId
