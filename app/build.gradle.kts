@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.phonecontrol"
-        minSdk = 29
+        minSdk = 31 // TODO: revert to 29 after solving the Modifier.blur issue
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -45,10 +45,12 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
+    androidResources {
+        generateLocaleConfig = true
+    }
 }
 
 dependencies {
-
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.appcompat:appcompat:1.6.1")
     implementation("com.google.android.material:material:1.11.0")

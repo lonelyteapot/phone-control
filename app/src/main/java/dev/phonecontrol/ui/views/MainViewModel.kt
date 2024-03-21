@@ -52,7 +52,7 @@ class MainViewModel(private val application: Application) : ViewModel() {
     suspend fun createNewRule(pos: Int) {
         val newRule = BlockingRule(
             uuid = UUID.randomUUID(),
-            enabled = false,
+            enabled = true,
             action = BlockingRule.Action.SILENCE,
             target = BlockingRule.Target.NON_CONTACTS,
             cardId = null,

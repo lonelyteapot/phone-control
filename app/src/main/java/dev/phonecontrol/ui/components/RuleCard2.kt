@@ -1,6 +1,7 @@
 package dev.phonecontrol.ui.components
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.telephony.SubscriptionInfo
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedContentTransitionScope
@@ -30,6 +31,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
@@ -165,8 +167,9 @@ fun RuleCard2(
                         stringResource(id = R.string.incoming_calls_from),
                         textAlign = TextAlign.End,
                         maxLines = 1,
+                        style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier
-                            .padding(start = 16.dp, end = 2.dp)
+                            .padding(start = 8.dp, end = 2.dp)
                     )
                 }
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -186,8 +189,9 @@ fun RuleCard2(
                         stringResource(id = R.string.rule_card_on),
                         textAlign = TextAlign.Start,
                         maxLines = 1,
+                        style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier
-                            .padding(start = 2.dp, end = 16.dp)
+                            .padding(start = 2.dp, end = 8.dp)
                             .conditional(rule.enabled && !simSwitchEnabled) {
                                 alpha(0.38f)
                             },
@@ -323,6 +327,7 @@ private fun RuleActionChip(
     )
 }
 
+@SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
 private fun RuleTargetChip(
     target: BlockingRule.Target,
@@ -342,6 +347,24 @@ private fun RuleTargetChip(
         selected = true,
         enabled = enabled,
         onClick = onClick,
+        leadingIcon = {
+            AnimatedContent(
+                targetState = labelId,
+                label = "AnimatedIcon",
+                transitionSpec = slideLeftTransitionSpec(),
+            ) { _ ->
+                Icon(
+                    painter = painterResource(R.drawable.ic_person),
+                    contentDescription = null,
+                    tint = Color.Unspecified,
+                    modifier = Modifier
+                        .size(AssistChipDefaults.IconSize)
+                        .conditional(!enabled) {
+                            alpha(0.38f)
+                        }
+                )
+            }
+        },
         label = {
             AnimatedContent(
                 targetState = labelId,

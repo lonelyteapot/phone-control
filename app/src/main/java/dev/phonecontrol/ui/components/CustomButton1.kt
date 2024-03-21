@@ -1,6 +1,6 @@
 package dev.phonecontrol.ui.components
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -25,7 +24,6 @@ import dev.phonecontrol.R
 fun CustomButton1(
     modifier: Modifier,
     text: String,
-    bottomText: String? = null,
     checked: Boolean,
     onClick: () -> Unit,
     noIcon: Boolean = false
@@ -54,22 +52,17 @@ fun CustomButton1(
             )
         }
         Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 2.dp),
-            text = text,
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.labelLarge,
-        )
-        if (bottomText != null) {
-            Spacer(modifier = Modifier.height(2.dp))
+        AnimatedContent(
+            targetState = text,
+            label = "AnimatedText",
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 2.dp),
+        ) {targetText ->
             Text(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 2.dp)
-                    .alpha(0.38f),
-                text = bottomText,
+                text = targetText,
                 textAlign = TextAlign.Center,
-                style = MaterialTheme.typography.labelSmall,
+                style = MaterialTheme.typography.labelMedium,
             )
         }
     }

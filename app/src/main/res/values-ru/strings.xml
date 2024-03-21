@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Phone Control</string>
+    <string name="perm_call_screening_role_label">Фильтрация звонков</string>
+    <string name="perm_read_contacts_label">Доступ к контактам</string>
+    <string name="new_rule">Добавить правило</string>
+    <string name="rule_action_silence">Заглушать</string>
+    <string name="rule_action_ignore">Пропускать</string>
+    <string name="rule_action_decline">Отклонять</string>
+    <string name="incoming_calls_from">звонки от</string>
+    <string name="everyone_except_contacts">всех, кроме контактов</string>
+    <string name="everyone">всех</string>
+    <string name="rule_card_on">на</string>
+    <string name="all_sim_cards">все СИМ-карты</string>
+    <string name="unknown_sim_card">неизвестную СИМ-карту</string>
+    <string name="rules_header">Правила блокировки</string>
+    <string name="permissions_header">Разрешения</string>
+    <string name="perm_read_phone_state_access">Доступ к СИМ-картам</string>
+    <string name="msg_access_to_contacts_is_required_to_use_this">Для этого нужен доступ к контактам</string>
+    <string name="snackbar_allow">Разрешить</string>
+</resources>

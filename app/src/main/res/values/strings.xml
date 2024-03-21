@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Phone Control</string>
     <string name="perm_call_screening_role_label">Call screening role</string>
-    <string name="perm_read_contacts_label">Contacts access</string>
-    <string name="new_rule">New Rule</string>
+    <string name="perm_read_contacts_label">Access to contacts</string>
+    <string name="new_rule">New rule</string>
     <string name="rule_action_silence">Silence</string>
     <string name="rule_action_ignore">Ignore</string>
     <string name="rule_action_decline">Decline</string>
@@ -10,12 +10,11 @@
     <string name="everyone_except_contacts">everyone except contacts</string>
     <string name="everyone">everyone</string>
     <string name="rule_card_on">on</string>
-    <string name="all_sim_cards">All SIM cards</string>
-    <string name="unknown_sim_card">Unknown SIM card</string>
-    <string name="rules_header">Rules</string>
+    <string name="all_sim_cards">all SIM cards</string>
+    <string name="unknown_sim_card">unknown SIM card</string>
+    <string name="rules_header">Call blocking rules</string>
     <string name="permissions_header">Permissions</string>
-    <string name="perm_read_phone_state_access">Phone access</string>
-    <string name="perm_call_screening_role_description">for identifying and blocking calls</string>
-    <string name="perm_read_phone_state_description">for detecting SIM cards</string>
-    <string name="perm_read_contacts_description">for blocking calls coming from contacts</string>
+    <string name="perm_read_phone_state_access">Access to SIM cards</string>
+    <string name="msg_access_to_contacts_is_required_to_use_this">Access to contacts is required to use this</string>
+    <string name="snackbar_allow">Allow</string>
 </resources>

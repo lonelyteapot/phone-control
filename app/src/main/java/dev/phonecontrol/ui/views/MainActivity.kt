@@ -3,14 +3,16 @@ package dev.phonecontrol.ui.views
 import android.Manifest
 import android.app.role.RoleManager
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -23,11 +25,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarDuration
@@ -42,16 +47,20 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
+import androidx.core.os.LocaleListCompat
 import dev.phonecontrol.R
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.gesturesDisabled
@@ -61,7 +70,7 @@ import dev.phonecontrol.ui.components.RuleCard2
 import dev.phonecontrol.ui.theme.PhoneControlTheme
 import kotlinx.coroutines.launch
 
-class MainActivity : ComponentActivity() {
+class MainActivity : AppCompatActivity() {
     private var permissionsViewModel: PermissionsViewModel? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -125,6 +134,36 @@ fun PhoneControlApp(
         }
     }
 
+    val supportedLanguageTags = arrayOf("en-US", "ru-RU")
+
+    val appLocale = LocalConfiguration.current.locales[0]
+
+    fun cycleAppLocale() {
+        val currentIndex = supportedLanguageTags.indexOf(appLocale.toLanguageTag())
+        val nextIndex = (currentIndex + 1) % supportedLanguageTags.size
+        val nextLanguageTag = supportedLanguageTags[nextIndex]
+
+        val newLocale = LocaleListCompat.forLanguageTags(nextLanguageTag)
+        AppCompatDelegate.setApplicationLocales(newLocale)
+    }
+    
+    suspend fun onTargetClickedButNoContactsPermission() {
+        if (snackbarHostState.currentSnackbarData != null) {
+            return
+        }
+        val snackbarResult = snackbarHostState.showSnackbar(
+            context.getString(R.string.msg_access_to_contacts_is_required_to_use_this),
+            actionLabel = context.getString(R.string.snackbar_allow),
+            duration = SnackbarDuration.Short,
+        )
+        when (snackbarResult) {
+            SnackbarResult.ActionPerformed -> {
+                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+            }
+            else -> {}
+        }
+    }
+
     Scaffold(
         contentWindowInsets = WindowInsets.systemBars.exclude(WindowInsets.navigationBars),
         containerColor = MaterialTheme.colorScheme.surfaceColorAtElevation(8.dp),
@@ -135,17 +174,37 @@ fun PhoneControlApp(
         Column(
             modifier = Modifier
                 .padding(padding)
-                .padding(top = 16.dp)
+                .padding(top = 16.dp),
         ) {
-            Text(
-                text = stringResource(R.string.permissions_header),
-                style = MaterialTheme.typography.headlineSmall,
-                textAlign = TextAlign.Center,
+            Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .padding(bottom = 24.dp)
-            )
+                    .padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Box(
+                    modifier = Modifier.weight(1f),
+                ) {
+                    IconButton(
+                        onClick = {
+                            cycleAppLocale()
+                        },
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.ic_language),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(R.string.permissions_header),
+                    style = MaterialTheme.typography.headlineSmall,
+                    textAlign = TextAlign.Center,
+                )
+                Spacer(modifier = Modifier.weight(1f))
+            }
+            Spacer(modifier = Modifier.height(16.dp))
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -157,7 +216,6 @@ fun PhoneControlApp(
                         .fillMaxWidth()
                         .weight(1f),
                     text = stringResource(R.string.perm_call_screening_role_label),
-                    bottomText = stringResource(R.string.perm_call_screening_role_description),
                     checked = permissionsState.hasCallScreeningRole,
                     onClick = {
                         requestCallScreeningRole()
@@ -172,7 +230,6 @@ fun PhoneControlApp(
                                 .gesturesDisabled()
                         },
                     text = stringResource(R.string.perm_read_phone_state_access),
-                    bottomText = stringResource(R.string.perm_read_phone_state_description),
                     checked = permissionsState.hasReadPhoneStatePermission,
                     onClick = {
                           requestPermissionLauncher.launch(Manifest.permission.READ_PHONE_STATE)
@@ -187,7 +244,6 @@ fun PhoneControlApp(
                                 .gesturesDisabled()
                         },
                     text = stringResource(R.string.perm_read_contacts_label),
-                    bottomText = stringResource(R.string.perm_read_contacts_description),
                     checked = permissionsState.hasReadContactsPermission,
                     onClick = {
                         requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
@@ -208,7 +264,7 @@ fun PhoneControlApp(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
-                        .padding(bottom = 8.dp)
+                        .padding(bottom = 16.dp)
                         .conditional(!permissionsState.hasCallScreeningRole) {
                             alpha(0.38f)
                         },
@@ -251,21 +307,7 @@ fun PhoneControlApp(
                             },
                             onNoContactsPermission = {
                                 coroutineScope.launch {
-                                    if (snackbarHostState.currentSnackbarData != null) {
-                                        return@launch
-                                    }
-                                    val snackbarResult = snackbarHostState.showSnackbar(
-                                        "Access to contacts is required to use this",
-                                        actionLabel = "Allow",
-                                        duration = SnackbarDuration.Short,
-                                    )
-                                    when (snackbarResult) {
-                                        SnackbarResult.ActionPerformed -> {
-                                            requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-                                        }
-
-                                        else -> {}
-                                    }
+                                    onTargetClickedButNoContactsPermission()
                                 }
                             },
                             subscription = subscription,
@@ -273,19 +315,6 @@ fun PhoneControlApp(
                             permissionsState = permissionsState,
                             modifier = Modifier.animateItemPlacement(),
                         )
-//                            RuleCard(
-//                                onRemovedSimCardClick = {
-//                                    coroutineScope.launch {
-//                                        if (snackbarHostState.currentSnackbarData != null) {
-//                                            return@launch
-//                                        }
-//                                        snackbarHostState.showSnackbar(
-//                                            "This SIM card has been removed",
-//                                            duration = SnackbarDuration.Short,
-//                                        )
-//                                    }
-//                                },
-//                            )
                     }
                     item(key = "new_rule") {
                         NewRuleCard(
