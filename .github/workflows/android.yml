@@ -27,9 +27,20 @@ jobs:
       
     - name: Build with Gradle
       run: ./gradlew build
-      
+
+    - uses: r0adkll/sign-android-release@v1
+      name: Sign the APK
+      id: sign_apk
+      with:
+        releaseDirectory: app/build/outputs/apk/release
+        # encode with $ base64 < ~/Android/keystore1.jks | tr -d '\n'
+        signingKeyBase64: ${{ secrets.KEYSTORE_BASE64 }}
+        keyStorePassword: ${{ secrets.KEYSTORE_PASSWORD }}
+        alias: ${{ secrets.KEY_ALIAS }}
+        keyPassword: ${{ secrets.KEY_PASSWORD }}
+
     - name: Upload artifact
       uses: actions/upload-artifact@v2.2.0
       with:
-        name: Release artifact
-        path: app/build/outputs/
+        name: Signed APK
+        path: ${{steps.sign_apk.outputs.signedReleaseFile}}
