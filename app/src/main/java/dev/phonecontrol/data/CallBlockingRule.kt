@@ -2,7 +2,7 @@ package dev.phonecontrol.data
 
 import java.util.UUID
 
-data class BlockingRule(
+data class CallBlockingRule(
     val uuid: UUID,
     val enabled: Boolean,
     val action: Action,

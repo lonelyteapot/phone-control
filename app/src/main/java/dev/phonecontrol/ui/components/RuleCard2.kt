@@ -50,7 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import dev.phonecontrol.R
-import dev.phonecontrol.data.BlockingRule
+import dev.phonecontrol.data.CallBlockingRule
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.isPermissionGranted
 import dev.phonecontrol.ui.assets.simCardImageVector
@@ -77,9 +77,9 @@ private fun <T> slideLeftTransitionSpec(): AnimatedContentTransitionScope<T>.() 
 
 @Composable
 fun RuleCard2(
-    rule: BlockingRule,
+    rule: CallBlockingRule,
     modifier: Modifier = Modifier,
-    onUpdateRule: (newRule: BlockingRule) -> Unit,
+    onUpdateRule: (newRule: CallBlockingRule) -> Unit,
     onDeleteClick: () -> Unit,
     onNoContactsPermission: () -> Unit = {},
     subscription: SubscriptionInfo?,
@@ -96,22 +96,22 @@ fun RuleCard2(
 
     fun cycleRuleAction() {
         val action = when (rule.action) {
-            BlockingRule.Action.SILENCE -> BlockingRule.Action.BLOCK
-            BlockingRule.Action.BLOCK -> BlockingRule.Action.REJECT
-            BlockingRule.Action.REJECT -> BlockingRule.Action.SILENCE
+            CallBlockingRule.Action.SILENCE -> CallBlockingRule.Action.BLOCK
+            CallBlockingRule.Action.BLOCK -> CallBlockingRule.Action.REJECT
+            CallBlockingRule.Action.REJECT -> CallBlockingRule.Action.SILENCE
         }
         onUpdateRule(rule.copy(action = action))
     }
 
     fun cycleRuleTarget() {
         val target = when (rule.target) {
-            BlockingRule.Target.EVERYONE -> BlockingRule.Target.NON_CONTACTS
-            BlockingRule.Target.NON_CONTACTS -> {
+            CallBlockingRule.Target.EVERYONE -> CallBlockingRule.Target.NON_CONTACTS
+            CallBlockingRule.Target.NON_CONTACTS -> {
                 if (!context.isPermissionGranted(Manifest.permission.READ_CONTACTS)) {
                     onNoContactsPermission()
                     return
                 }
-                BlockingRule.Target.EVERYONE
+                CallBlockingRule.Target.EVERYONE
             }
         }
         onUpdateRule(rule.copy(target = target))
@@ -280,20 +280,20 @@ private fun elevatedCardColors(enabled: Boolean): CardColors {
 
 @Composable
 private fun RuleActionChip(
-    action: BlockingRule.Action,
+    action: CallBlockingRule.Action,
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val labelId = when (action) {
-        BlockingRule.Action.SILENCE -> R.string.rule_action_silence
-        BlockingRule.Action.BLOCK -> R.string.rule_action_ignore
-        BlockingRule.Action.REJECT -> R.string.rule_action_decline
+        CallBlockingRule.Action.SILENCE -> R.string.rule_action_silence
+        CallBlockingRule.Action.BLOCK -> R.string.rule_action_ignore
+        CallBlockingRule.Action.REJECT -> R.string.rule_action_decline
     }
     val iconId = when (action) {
-        BlockingRule.Action.SILENCE -> R.drawable.ic_silent
-        BlockingRule.Action.BLOCK -> R.drawable.ic_telephone_call
-        BlockingRule.Action.REJECT -> R.drawable.ic_hang_up
+        CallBlockingRule.Action.SILENCE -> R.drawable.ic_silent
+        CallBlockingRule.Action.BLOCK -> R.drawable.ic_telephone_call
+        CallBlockingRule.Action.REJECT -> R.drawable.ic_hang_up
     }
 
     FilterChip(
@@ -334,17 +334,17 @@ private fun RuleActionChip(
 @SuppressLint("UnusedContentLambdaTargetStateParameter")
 @Composable
 private fun RuleTargetChip(
-    target: BlockingRule.Target,
+    target: CallBlockingRule.Target,
     enabled: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val labelId = when (target) {
-        BlockingRule.Target.EVERYONE -> R.string.everyone
-        BlockingRule.Target.NON_CONTACTS -> R.string.everyone_except_contacts
+        CallBlockingRule.Target.EVERYONE -> R.string.everyone
+        CallBlockingRule.Target.NON_CONTACTS -> R.string.everyone_except_contacts
     }
     val strikethrough =
-        target == BlockingRule.Target.EVERYONE && !LocalContext.current.isPermissionGranted(Manifest.permission.READ_CONTACTS)
+        target == CallBlockingRule.Target.EVERYONE && !LocalContext.current.isPermissionGranted(Manifest.permission.READ_CONTACTS)
 
     FilterChip(
         modifier = modifier,
@@ -447,11 +447,11 @@ private fun RuleSimCardChip(
 @Composable
 private fun RuleCard2Preview() {
     RuleCard2(
-        BlockingRule(
+        CallBlockingRule(
             uuid = UUID.randomUUID(),
             enabled = true,
-            action = BlockingRule.Action.BLOCK,
-            target = BlockingRule.Target.NON_CONTACTS,
+            action = CallBlockingRule.Action.BLOCK,
+            target = CallBlockingRule.Target.NON_CONTACTS,
             cardId = null,
             cardName = null,
             position = 0,
@@ -468,11 +468,11 @@ private fun RuleCard2Preview() {
 @Composable
 private fun RuleCard2Preview2() {
     RuleCard2(
-        BlockingRule(
+        CallBlockingRule(
             uuid = UUID.randomUUID(),
             enabled = true,
-            action = BlockingRule.Action.SILENCE,
-            target = BlockingRule.Target.EVERYONE,
+            action = CallBlockingRule.Action.SILENCE,
+            target = CallBlockingRule.Target.EVERYONE,
             cardId = 1,
             cardName = "SIM1",
             position = 0,

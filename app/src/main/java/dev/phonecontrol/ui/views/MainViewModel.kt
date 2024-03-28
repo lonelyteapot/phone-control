@@ -8,7 +8,7 @@ import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener
 import androidx.core.content.getSystemService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.phonecontrol.data.BlockingRule
+import dev.phonecontrol.data.CallBlockingRule
 import dev.phonecontrol.data.UserPreferencesRepository
 import dev.phonecontrol.data.dataStore
 import kotlinx.coroutines.flow.Flow
@@ -21,7 +21,7 @@ import java.util.UUID
 class MainViewModel(private val application: Application) : ViewModel() {
     private val userPreferencesRepository = UserPreferencesRepository(application.dataStore)
 
-    val ruleListFlow: Flow<List<BlockingRule>>
+    val ruleListFlow: Flow<List<CallBlockingRule>>
         get() = userPreferencesRepository.ruleListFlow
     val subscriptionListFlow = MutableStateFlow(emptyList<SubscriptionInfo>())
 
@@ -50,11 +50,11 @@ class MainViewModel(private val application: Application) : ViewModel() {
     }
 
     suspend fun createNewRule(pos: Int) {
-        val newRule = BlockingRule(
+        val newRule = CallBlockingRule(
             uuid = UUID.randomUUID(),
             enabled = true,
-            action = BlockingRule.Action.SILENCE,
-            target = BlockingRule.Target.NON_CONTACTS,
+            action = CallBlockingRule.Action.SILENCE,
+            target = CallBlockingRule.Target.NON_CONTACTS,
             cardId = null,
             cardName = null,
             position = pos
@@ -62,13 +62,13 @@ class MainViewModel(private val application: Application) : ViewModel() {
         userPreferencesRepository.createRule(newRule)
     }
 
-    fun updateRule(rule: BlockingRule) {
+    fun updateRule(rule: CallBlockingRule) {
         viewModelScope.launch {
             userPreferencesRepository.updateRule(rule)
         }
     }
 
-    fun deleteRule(rule: BlockingRule) {
+    fun deleteRule(rule: CallBlockingRule) {
         viewModelScope.launch {
             userPreferencesRepository.deleteRule(rule.uuid)
         }

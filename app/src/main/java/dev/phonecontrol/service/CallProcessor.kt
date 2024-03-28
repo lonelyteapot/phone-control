@@ -7,7 +7,7 @@ import android.content.pm.PackageManager
 import android.telecom.Call
 import android.telecom.CallScreeningService
 import androidx.core.content.ContextCompat
-import dev.phonecontrol.data.BlockingRule
+import dev.phonecontrol.data.CallBlockingRule
 import dev.phonecontrol.data.UserPreferencesRepository
 import dev.phonecontrol.data.dataStore
 import dev.phonecontrol.misc.logi
@@ -44,15 +44,15 @@ class CallProcessor(
             .filter { rule -> targetMatchesRule(rule, callInfo, contactChecker) }
             .forEach { rule ->
                 when (rule.action) {
-                    BlockingRule.Action.SILENCE -> {
+                    CallBlockingRule.Action.SILENCE -> {
                         response.setSilenceCall(true)
                     }
 
-                    BlockingRule.Action.BLOCK -> {
+                    CallBlockingRule.Action.BLOCK -> {
                         response.setDisallowCall(true)
                     }
 
-                    BlockingRule.Action.REJECT -> {
+                    CallBlockingRule.Action.REJECT -> {
                         response.setDisallowCall(true)
                         response.setRejectCall(true)
                     }
@@ -61,10 +61,10 @@ class CallProcessor(
         return response
     }
 
-    private fun targetMatchesRule(rule: BlockingRule, callInfo: MyCallInfo, contactChecker: ContactChecker?): Boolean {
+    private fun targetMatchesRule(rule: CallBlockingRule, callInfo: MyCallInfo, contactChecker: ContactChecker?): Boolean {
         return when (rule.target) {
-            BlockingRule.Target.EVERYONE -> true
-            BlockingRule.Target.NON_CONTACTS -> {
+            CallBlockingRule.Target.EVERYONE -> true
+            CallBlockingRule.Target.NON_CONTACTS -> {
                 // contactChecker is only null when our app doesn't have permission to read contacts.
                 // In that case, all calls sent to onScreenCall are guaranteed by Android to NOT be from contacts.
                 !(contactChecker?.isNumberInContacts ?: false)
@@ -74,7 +74,7 @@ class CallProcessor(
 
     // TODO permission check
     @SuppressLint("MissingPermission")
-    private suspend fun simMatchesRule(rule: BlockingRule, callInfo: MyCallInfo, simChecker: SimChecker): Boolean {
+    private suspend fun simMatchesRule(rule: CallBlockingRule, callInfo: MyCallInfo, simChecker: SimChecker): Boolean {
         if (rule.cardId == null) {
             return true
         }
