@@ -1,15 +1,14 @@
 package dev.phonecontrol.service
 
-import android.Manifest
+import android.Manifest.permission.READ_CONTACTS
 import android.annotation.SuppressLint
 import android.content.Context
-import android.content.pm.PackageManager
 import android.telecom.Call
 import android.telecom.CallScreeningService
-import androidx.core.content.ContextCompat
 import dev.phonecontrol.data.CallBlockingRule
 import dev.phonecontrol.data.UserPreferencesRepository
 import dev.phonecontrol.data.dataStore
+import dev.phonecontrol.misc.hasPermission
 import dev.phonecontrol.misc.logi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
@@ -27,7 +26,7 @@ class CallProcessor(
             return response
         }
 
-        val contactChecker = if (hasContactsPermission(applicationContext)) {
+        val contactChecker = if (applicationContext.hasPermission(READ_CONTACTS)) {
             ContactChecker(applicationContext, callInfo.phoneNumber)
         } else {
             null
@@ -84,11 +83,4 @@ class CallProcessor(
         return subscriptionInfo.cardId == rule.cardId
     }
 
-}
-
-private fun hasContactsPermission(context: Context): Boolean {
-    return ContextCompat.checkSelfPermission(
-        context,
-        Manifest.permission.READ_CONTACTS
-    ) == PackageManager.PERMISSION_GRANTED
 }

@@ -1,6 +1,6 @@
 package dev.phonecontrol.ui.components
 
-import android.Manifest
+import android.Manifest.permission.READ_CONTACTS
 import android.annotation.SuppressLint
 import android.telephony.SubscriptionInfo
 import androidx.compose.animation.AnimatedContent
@@ -52,7 +52,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import dev.phonecontrol.R
 import dev.phonecontrol.data.CallBlockingRule
 import dev.phonecontrol.misc.conditional
-import dev.phonecontrol.misc.isPermissionGranted
+import dev.phonecontrol.misc.hasPermission
 import dev.phonecontrol.ui.assets.simCardImageVector
 import dev.phonecontrol.ui.views.PermissionsState
 import java.util.UUID
@@ -67,11 +67,9 @@ private fun <T> slideLeftTransitionSpec(): AnimatedContentTransitionScope<T>.() 
             tween(
                 ANIMATION_DURATION_MS
             )
-        ) togetherWith
-                slideOutHorizontally(tween(ANIMATION_DURATION_MS)) { width -> -width } + fadeOut(
+        ) togetherWith slideOutHorizontally(tween(ANIMATION_DURATION_MS)) { width -> -width } + fadeOut(
             tween(ANIMATION_DURATION_MS)
-        ) using
-                SizeTransform(clip = false)
+        ) using SizeTransform(clip = false)
     }
 }
 
@@ -89,10 +87,8 @@ fun RuleCard2(
     val context = LocalContext.current
     val canAccessSimCards =
         permissionsState.hasReadPhoneStatePermission && permissionsState.hasReadCallLogPermission
-    val simSwitchEnabled =
-        rule.enabled && (canAccessSimCards || rule.cardId != null)
-    val isRuleWorking =
-        rule.enabled && (rule.cardId == null || canAccessSimCards)
+    val simSwitchEnabled = rule.enabled && (canAccessSimCards || rule.cardId != null)
+    val isRuleWorking = rule.enabled && (rule.cardId == null || canAccessSimCards)
 
     fun cycleRuleAction() {
         val action = when (rule.action) {
@@ -107,7 +103,7 @@ fun RuleCard2(
         val target = when (rule.target) {
             CallBlockingRule.Target.EVERYONE -> CallBlockingRule.Target.NON_CONTACTS
             CallBlockingRule.Target.NON_CONTACTS -> {
-                if (!context.isPermissionGranted(Manifest.permission.READ_CONTACTS)) {
+                if (!context.hasPermission(READ_CONTACTS)) {
                     onNoContactsPermission()
                     return
                 }
@@ -170,8 +166,7 @@ fun RuleCard2(
                         textAlign = TextAlign.End,
                         maxLines = 1,
                         style = MaterialTheme.typography.labelLarge,
-                        modifier = Modifier
-                            .padding(start = 8.dp, end = 2.dp)
+                        modifier = Modifier.padding(start = 8.dp, end = 2.dp)
                     )
                 }
                 Row(modifier = Modifier.padding(horizontal = 16.dp)) {
@@ -184,8 +179,7 @@ fun RuleCard2(
                 }
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
                     Text(
                         stringResource(id = R.string.rule_card_on),
@@ -242,7 +236,7 @@ fun RuleCard2(
                         }
                     } else {
                         null
-                    }
+                    },
                 )
                 IconButton(
                     modifier = Modifier.constrainAs(deleteButton) {
@@ -256,8 +250,7 @@ fun RuleCard2(
                         painter = painterResource(R.drawable.ic_trash),
                         contentDescription = null,
                         tint = LocalContentColor.current,
-                        modifier = Modifier
-                            .size(ButtonDefaults.IconSize)
+                        modifier = Modifier.size(ButtonDefaults.IconSize)
                     )
                 }
             }
@@ -283,7 +276,7 @@ private fun RuleActionChip(
     action: CallBlockingRule.Action,
     enabled: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val labelId = when (action) {
         CallBlockingRule.Action.SILENCE -> R.string.rule_action_silence
@@ -315,7 +308,7 @@ private fun RuleActionChip(
                         .size(AssistChipDefaults.IconSize)
                         .conditional(!enabled) {
                             alpha(0.38f)
-                        }
+                        },
                 )
             }
         },
@@ -327,7 +320,7 @@ private fun RuleActionChip(
             ) { targetId ->
                 Text(text = stringResource(targetId), maxLines = 1)
             }
-        }
+        },
     )
 }
 
@@ -344,7 +337,9 @@ private fun RuleTargetChip(
         CallBlockingRule.Target.NON_CONTACTS -> R.string.everyone_except_contacts
     }
     val strikethrough =
-        target == CallBlockingRule.Target.EVERYONE && !LocalContext.current.isPermissionGranted(Manifest.permission.READ_CONTACTS)
+        target == CallBlockingRule.Target.EVERYONE && !LocalContext.current.hasPermission(
+            READ_CONTACTS
+        )
 
     FilterChip(
         modifier = modifier,
@@ -365,7 +360,7 @@ private fun RuleTargetChip(
                         .size(AssistChipDefaults.IconSize)
                         .conditional(!enabled) {
                             alpha(0.38f)
-                        }
+                        },
                 )
             }
         },
@@ -407,8 +402,7 @@ private fun RuleSimCardChip(
         Color(iconTint)
     }
     FilterChip(
-        modifier = Modifier
-            .then(modifier),
+        modifier = Modifier.then(modifier),
         selected = true,
         enabled = enabled,
         onClick = onClick,
@@ -427,7 +421,7 @@ private fun RuleSimCardChip(
                         .size(AssistChipDefaults.IconSize)
                         .conditional(!enabled) {
                             alpha(0.38f)
-                        }
+                        },
                 )
             }
         },
