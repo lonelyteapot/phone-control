@@ -262,7 +262,7 @@ fun PhoneControlApp(
                     },
                 )
             }
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(28.dp))
             Column(
                 modifier = Modifier.conditional(!permissionsState.hasCallScreeningRole) {
                     blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
