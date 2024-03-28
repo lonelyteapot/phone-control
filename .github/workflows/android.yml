@@ -22,6 +22,13 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
+    - name: Discover build-tools version
+      shell: bash
+      run: |
+        BUILD_TOOLS_VERSION=$(ls /usr/local/lib/android/sdk/build-tools/ | tail -n 1)
+        echo "BUILD_TOOLS_VERSION=$BUILD_TOOLS_VERSION" >> $GITHUB_ENV
+        echo Latest build-tools version is $BUILD_TOOLS_VERSION
+
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
       
@@ -39,7 +46,7 @@ jobs:
         alias: ${{ secrets.KEY_ALIAS }}
         keyPassword: ${{ secrets.KEY_PASSWORD }}
       env:
-        BUILD_TOOLS_VERSION: "35.0.0"
+        BUILD_TOOLS_VERSION: ${{ env.BUILD_TOOLS_VERSION }}
 
     - name: Upload artifact
       uses: actions/upload-artifact@v4.3.1
