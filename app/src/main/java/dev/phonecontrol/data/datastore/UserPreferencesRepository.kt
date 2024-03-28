@@ -1,4 +1,4 @@
-package dev.phonecontrol.data
+package dev.phonecontrol.data.datastore
 
 import android.content.Context
 import androidx.datastore.core.DataStore
@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import dev.phonecontrol.domain.model.CallBlockingRule
 import kotlinx.coroutines.flow.map
 import java.util.UUID
 

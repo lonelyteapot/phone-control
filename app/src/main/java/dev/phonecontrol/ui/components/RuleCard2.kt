@@ -50,7 +50,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import dev.phonecontrol.R
-import dev.phonecontrol.data.CallBlockingRule
+import dev.phonecontrol.domain.model.CallBlockingRule
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.hasPermission
 import dev.phonecontrol.ui.assets.simCardImageVector

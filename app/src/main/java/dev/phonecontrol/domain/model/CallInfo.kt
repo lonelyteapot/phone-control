@@ -1,11 +1,11 @@
-package dev.phonecontrol.service
+package dev.phonecontrol.domain.model
 
 import android.net.Uri
 import android.os.Build
 import android.telecom.Call
 import androidx.annotation.RequiresApi
 
-class MyCallInfo(private val callDetails: Call.Details) {
+class CallInfo(private val callDetails: Call.Details) {
     val phoneNumber: String = callDetails.handle.schemeSpecificPart
 
     val callDirection: Int

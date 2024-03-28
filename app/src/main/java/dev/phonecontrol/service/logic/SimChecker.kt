@@ -1,4 +1,4 @@
-package dev.phonecontrol.service
+package dev.phonecontrol.service.logic
 
 import android.Manifest
 import android.content.Context

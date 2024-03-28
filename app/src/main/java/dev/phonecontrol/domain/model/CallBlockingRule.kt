@@ -1,4 +1,4 @@
-package dev.phonecontrol.data
+package dev.phonecontrol.domain.model
 
 import java.util.UUID
 
@@ -19,4 +19,3 @@ data class CallBlockingRule(
         EVERYONE, NON_CONTACTS
     }
 }
-

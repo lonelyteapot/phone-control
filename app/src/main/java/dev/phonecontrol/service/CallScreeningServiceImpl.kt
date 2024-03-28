@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.IBinder
 import android.telecom.Call
 import android.telecom.CallScreeningService
+import dev.phonecontrol.domain.model.CallInfo
 import dev.phonecontrol.misc.logi
+import dev.phonecontrol.service.logic.CallProcessor
+import dev.phonecontrol.service.logic.PerformanceRecorder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.cancel
@@ -32,7 +35,7 @@ class CallScreeningServiceImpl : CallScreeningService() {
 
     override fun onScreenCall(callDetails: Call.Details) {
         performanceRecorder?.recordCallReceived()
-        val callInfo = MyCallInfo(callDetails)
+        val callInfo = CallInfo(callDetails)
         logi("Receiving a call from/to '${callInfo.phoneNumber}'")
 
         coroutineScope.launch {

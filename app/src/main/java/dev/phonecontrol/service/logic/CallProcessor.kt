@@ -1,13 +1,14 @@
-package dev.phonecontrol.service
+package dev.phonecontrol.service.logic
 
 import android.Manifest.permission.READ_CONTACTS
 import android.annotation.SuppressLint
 import android.content.Context
 import android.telecom.Call
 import android.telecom.CallScreeningService
-import dev.phonecontrol.data.CallBlockingRule
-import dev.phonecontrol.data.UserPreferencesRepository
-import dev.phonecontrol.data.dataStore
+import dev.phonecontrol.domain.model.CallBlockingRule
+import dev.phonecontrol.data.datastore.UserPreferencesRepository
+import dev.phonecontrol.data.datastore.dataStore
+import dev.phonecontrol.domain.model.CallInfo
 import dev.phonecontrol.misc.hasPermission
 import dev.phonecontrol.misc.logi
 import kotlinx.coroutines.flow.first
@@ -18,7 +19,7 @@ class CallProcessor(
 ) {
     private val userPreferencesRepository = UserPreferencesRepository(applicationContext.dataStore)
 
-    suspend fun processCall(callInfo: MyCallInfo): CallScreeningService.CallResponse.Builder {
+    suspend fun processCall(callInfo: CallInfo): CallScreeningService.CallResponse.Builder {
         val response = CallScreeningService.CallResponse.Builder()
 
         if (callInfo.callDirection != Call.Details.DIRECTION_INCOMING) {
@@ -60,7 +61,7 @@ class CallProcessor(
         return response
     }
 
-    private fun targetMatchesRule(rule: CallBlockingRule, callInfo: MyCallInfo, contactChecker: ContactChecker?): Boolean {
+    private fun targetMatchesRule(rule: CallBlockingRule, callInfo: CallInfo, contactChecker: ContactChecker?): Boolean {
         return when (rule.target) {
             CallBlockingRule.Target.EVERYONE -> true
             CallBlockingRule.Target.NON_CONTACTS -> {
@@ -73,7 +74,7 @@ class CallProcessor(
 
     // TODO permission check
     @SuppressLint("MissingPermission")
-    private suspend fun simMatchesRule(rule: CallBlockingRule, callInfo: MyCallInfo, simChecker: SimChecker): Boolean {
+    private suspend fun simMatchesRule(rule: CallBlockingRule, callInfo: CallInfo, simChecker: SimChecker): Boolean {
         if (rule.cardId == null) {
             return true
         }

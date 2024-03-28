@@ -8,9 +8,9 @@ import android.telephony.SubscriptionManager.OnSubscriptionsChangedListener
 import androidx.core.content.getSystemService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import dev.phonecontrol.data.CallBlockingRule
-import dev.phonecontrol.data.UserPreferencesRepository
-import dev.phonecontrol.data.dataStore
+import dev.phonecontrol.domain.model.CallBlockingRule
+import dev.phonecontrol.data.datastore.UserPreferencesRepository
+import dev.phonecontrol.data.datastore.dataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.update
