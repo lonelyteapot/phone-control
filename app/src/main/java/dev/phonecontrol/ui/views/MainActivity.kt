@@ -71,14 +71,17 @@ import dev.phonecontrol.ui.theme.PhoneControlTheme
 import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-    private var permissionsViewModel: PermissionsViewModel? = null
+    private lateinit var mainViewModel: MainViewModel
+    private lateinit var permissionsViewModel: PermissionsViewModel
+    private lateinit var subscriptionsViewModel: SubscriptionsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge()
 
-        val viewModel = MainViewModel(application)
+        mainViewModel = MainViewModel(application)
+        subscriptionsViewModel = SubscriptionsViewModel(application)
         permissionsViewModel = PermissionsViewModel(application)
 
         setContent {
@@ -87,7 +90,7 @@ class MainActivity : AppCompatActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    PhoneControlApp(viewModel, permissionsViewModel!!)
+                    PhoneControlApp(mainViewModel, permissionsViewModel, subscriptionsViewModel)
                 }
             }
         }
@@ -95,7 +98,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        permissionsViewModel?.refreshPermissionsState()
+        permissionsViewModel.refreshPermissionsState()
+        subscriptionsViewModel.refreshSubscriptionsState()
     }
 }
 
@@ -105,6 +109,7 @@ class MainActivity : AppCompatActivity() {
 fun PhoneControlApp(
     viewModel: MainViewModel,
     permissionsViewModel: PermissionsViewModel,
+    subscriptionsViewModel: SubscriptionsViewModel,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -114,7 +119,7 @@ fun PhoneControlApp(
     val ruleListState = viewModel.ruleListFlow.collectAsState(initial = emptyList())
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val subscriptionsState = viewModel.subscriptionListFlow.collectAsState()
+    val subscriptionsState = subscriptionsViewModel.subscriptionListFlow.collectAsState()
 
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
@@ -234,7 +239,7 @@ fun PhoneControlApp(
                                 .gesturesDisabled()
                         },
                     text = stringResource(R.string.perm_read_phone_state_access),
-                    checked = permissionsState.hasReadPhoneStatePermission,
+                    checked = permissionsState.hasReadPhoneStatePermission && permissionsState.hasReadCallLogPermission,
                     onClick = {
                         requestMultiplePermissionsLauncher.launch(arrayOf(
                             Manifest.permission.READ_PHONE_STATE,
