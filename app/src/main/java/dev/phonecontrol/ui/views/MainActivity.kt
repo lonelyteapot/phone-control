@@ -95,7 +95,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        permissionsViewModel?.updatePermissionState()
+        permissionsViewModel?.refreshPermissionsState()
     }
 }
 
@@ -118,15 +118,15 @@ fun PhoneControlApp(
 
     val requestPermissionLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
-            permissionsViewModel.updatePermissionState()
+            permissionsViewModel.refreshPermissionsState()
         }
     val requestMultiplePermissionsLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
-            permissionsViewModel.updatePermissionState()
+            permissionsViewModel.refreshPermissionsState()
         }
     val startActivityForResultLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {_ ->
-            permissionsViewModel.updatePermissionState()
+            permissionsViewModel.refreshPermissionsState()
         }
 
     fun requestCallScreeningRole() {

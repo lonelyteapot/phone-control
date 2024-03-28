@@ -14,15 +14,10 @@ import kotlinx.coroutines.flow.update
 class PermissionsViewModel(private val application: Application) : ViewModel() {
     val stateFlow = MutableStateFlow(checkAllPermissions())
 
-    init {
-        updatePermissionState()
-    }
-
     private fun checkAllPermissions(): PermissionsState {
-        // TODO: handle cases where a device doesn't support the role
         val roleManager = application.getSystemService<RoleManager>()
-
         return PermissionsState(
+            callScreeningSupported = roleManager?.isRoleAvailable(RoleManager.ROLE_CALL_SCREENING) == true,
             hasCallScreeningRole = roleManager?.isRoleHeld(RoleManager.ROLE_CALL_SCREENING) == true,
             hasReadContactsPermission = application.hasPermission(READ_CONTACTS),
             hasReadPhoneStatePermission = application.hasPermission(READ_PHONE_STATE),
@@ -30,7 +25,7 @@ class PermissionsViewModel(private val application: Application) : ViewModel() {
         )
     }
 
-    fun updatePermissionState() {
+    fun refreshPermissionsState() {
         val newState = checkAllPermissions()
         stateFlow.update { newState }
     }
