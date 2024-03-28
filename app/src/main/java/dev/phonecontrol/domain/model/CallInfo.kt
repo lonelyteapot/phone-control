@@ -24,4 +24,13 @@ class CallInfo(private val callDetails: Call.Details) {
     // handle.scheme is always PhoneAccount#SCHEME_TEL
     val handle: Uri
         get() = callDetails.handle
+
+    val loggableDirection: String
+        get() {
+            return when (callDirection) {
+                Call.Details.DIRECTION_INCOMING -> "incoming"
+                Call.Details.DIRECTION_OUTGOING -> "outgoing"
+                else -> "(unknown direction)"
+            }
+        }
 }

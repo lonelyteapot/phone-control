@@ -1,6 +1,7 @@
 package dev.phonecontrol.service.logic
 
 import dev.phonecontrol.misc.logd
+import kotlin.time.Duration.Companion.nanoseconds
 
 class PerformanceRecorder {
     private var bindTime: Long? = null
@@ -23,19 +24,19 @@ class PerformanceRecorder {
 
     fun recordCallReceived() {
         callHandleTime = System.nanoTime()
-        val delta = subtract(callHandleTime, bindTime)
-        logd("Started processing the call in $delta ns")
+        val delta = subtract(callHandleTime, bindTime)?.nanoseconds
+        logd("Started processing the call after $delta")
     }
 
     fun recordCallHandled() {
         callHandledTime = System.nanoTime()
-        val delta = subtract(callHandledTime, callHandleTime)
-        logd("Finished processing the call in $delta ns")
+        val delta = subtract(callHandledTime, callHandleTime)?.nanoseconds
+        logd("Finished processing the call in $delta")
     }
 
     fun recordUnbind() {
         unbindTime = System.nanoTime()
-        val delta = subtract(unbindTime, bindTime)
-        logd("CallScreeningService finished in $delta ns")
+        val delta = subtract(unbindTime, bindTime)?.nanoseconds
+        logd("CallScreeningService finished after $delta")
     }
 }

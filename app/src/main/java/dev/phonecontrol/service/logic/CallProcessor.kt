@@ -5,12 +5,11 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.telecom.Call
 import android.telecom.CallScreeningService
-import dev.phonecontrol.domain.model.CallBlockingRule
 import dev.phonecontrol.data.datastore.UserPreferencesRepository
 import dev.phonecontrol.data.datastore.dataStore
+import dev.phonecontrol.domain.model.CallBlockingRule
 import dev.phonecontrol.domain.model.CallInfo
 import dev.phonecontrol.misc.hasPermission
-import dev.phonecontrol.misc.logi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 
@@ -23,7 +22,6 @@ class CallProcessor(
         val response = CallScreeningService.CallResponse.Builder()
 
         if (callInfo.callDirection != Call.Details.DIRECTION_INCOMING) {
-            logi("Call direction is not incoming, ignoring")
             return response
         }
 
@@ -61,7 +59,11 @@ class CallProcessor(
         return response
     }
 
-    private fun targetMatchesRule(rule: CallBlockingRule, callInfo: CallInfo, contactChecker: ContactChecker?): Boolean {
+    private fun targetMatchesRule(
+        rule: CallBlockingRule,
+        callInfo: CallInfo,
+        contactChecker: ContactChecker?,
+    ): Boolean {
         return when (rule.target) {
             CallBlockingRule.Target.EVERYONE -> true
             CallBlockingRule.Target.NON_CONTACTS -> {
@@ -74,7 +76,11 @@ class CallProcessor(
 
     // TODO permission check
     @SuppressLint("MissingPermission")
-    private suspend fun simMatchesRule(rule: CallBlockingRule, callInfo: CallInfo, simChecker: SimChecker): Boolean {
+    private suspend fun simMatchesRule(
+        rule: CallBlockingRule,
+        callInfo: CallInfo,
+        simChecker: SimChecker,
+    ): Boolean {
         if (rule.cardId == null) {
             return true
         }

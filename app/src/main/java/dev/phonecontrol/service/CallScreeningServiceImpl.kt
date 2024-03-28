@@ -16,33 +16,38 @@ import kotlinx.coroutines.launch
 
 class CallScreeningServiceImpl : CallScreeningService() {
     private lateinit var coroutineScope: CoroutineScope
-    private var performanceRecorder: PerformanceRecorder? = null
-    private var callProcessor: CallProcessor? = null
+    private lateinit var performanceRecorder: PerformanceRecorder
+    private lateinit var callProcessor: CallProcessor
 
     override fun onBind(intent: Intent?): IBinder? {
         performanceRecorder = PerformanceRecorder()
-        performanceRecorder!!.recordBind()
+        performanceRecorder.recordBind()
         callProcessor = CallProcessor(applicationContext)
         coroutineScope = MainScope()
         return super.onBind(intent)
     }
 
     override fun onUnbind(intent: Intent?): Boolean {
-        performanceRecorder?.recordUnbind()
+        performanceRecorder.recordUnbind()
         coroutineScope.cancel("CallScreeningService has been unbound by the system")
         return super.onUnbind(intent)
     }
 
     override fun onScreenCall(callDetails: Call.Details) {
-        performanceRecorder?.recordCallReceived()
+        performanceRecorder.recordCallReceived()
         val callInfo = CallInfo(callDetails)
-        logi("Receiving a call from/to '${callInfo.phoneNumber}'")
+        logi("Receiving an ${callInfo.loggableDirection} call")
 
         coroutineScope.launch {
-            val response = callProcessor!!.processCall(callInfo).build()
-            logi("Responding: disallow=${response.disallowCall}, silence=${response.silenceCall}, reject=${response.rejectCall}")
+            val response = callProcessor.processCall(callInfo).build()
+            val loggableActions = listOfNotNull(
+                if (response.disallowCall) "disallow" else null,
+                if (response.silenceCall) "silence" else null,
+                if (response.rejectCall) "reject" else null,
+            ).joinToString(", ").ifEmpty { "do nothing" }
+            logi("Responding: $loggableActions")
             respondToCall(callDetails, response)
-            performanceRecorder?.recordCallHandled()
+            performanceRecorder.recordCallHandled()
         }
     }
 }
