@@ -51,5 +51,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4.3.1
       with:
-        name: Signed APK
+        name: Release APK
         path: ${{steps.sign_apk.outputs.signedReleaseFile}}

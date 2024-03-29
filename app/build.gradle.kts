@@ -28,6 +28,15 @@ android {
         debug {
             applicationIdSuffix = ".debug"
         }
+        applicationVariants.all {
+            outputs.forEach { output ->
+                if (output is com.android.build.gradle.internal.api.BaseVariantOutputImpl) {
+                    val namePart = if (name != "release") "-$name" else ""
+                    output.outputFileName =
+                        "PhoneControl-v$versionName$namePart.${output.outputFile.extension}"
+                }
+            }
+        }
     }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
