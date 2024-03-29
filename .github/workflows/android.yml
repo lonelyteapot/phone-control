@@ -33,7 +33,7 @@ jobs:
       run: chmod +x gradlew
       
     - name: Build with Gradle
-      run: ./gradlew build
+      run: ./gradlew assembleRelease
 
     - uses: r0adkll/sign-android-release@v1
       name: Sign the APK
@@ -51,5 +51,5 @@ jobs:
     - name: Upload artifact
       uses: actions/upload-artifact@v4.3.1
       with:
-        name: Release APK
+        name: Phone Control release build
         path: ${{steps.sign_apk.outputs.signedReleaseFile}}
