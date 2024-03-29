@@ -1,6 +1,8 @@
 package dev.phonecontrol.service.logic
 
+import android.Manifest.permission.READ_CALL_LOG
 import android.Manifest.permission.READ_CONTACTS
+import android.Manifest.permission.READ_PHONE_STATE
 import android.annotation.SuppressLint
 import android.content.Context
 import android.telecom.Call
@@ -18,6 +20,8 @@ class CallProcessor(
 ) {
     private val userPreferencesRepository = UserPreferencesRepository(applicationContext.dataStore)
 
+    // TODO
+    @SuppressLint("MissingPermission")
     suspend fun processCall(callInfo: CallInfo): CallScreeningService.CallResponse.Builder {
         val response = CallScreeningService.CallResponse.Builder()
 
@@ -25,69 +29,66 @@ class CallProcessor(
             return response
         }
 
-        val contactChecker = if (applicationContext.hasPermission(READ_CONTACTS)) {
-            ContactChecker(applicationContext, callInfo.phoneNumber)
-        } else {
-            null
-        }
-        val simChecker = SimChecker(applicationContext, callInfo.phoneNumber)
-
         val ruleList = runBlocking {
             userPreferencesRepository.ruleListFlow.first()
         }
 
-        ruleList
-            .filter { rule -> rule.enabled }
-            .filter { rule -> simMatchesRule(rule, callInfo, simChecker) }
-            .filter { rule -> targetMatchesRule(rule, callInfo, contactChecker) }
-            .forEach { rule ->
-                when (rule.action) {
-                    CallBlockingRule.Action.SILENCE -> {
-                        response.setSilenceCall(true)
-                    }
+        val canDetectSim =
+            applicationContext.hasPermission(READ_PHONE_STATE) && applicationContext.hasPermission(
+                READ_CALL_LOG
+            )
+        val canGetContactStatus = applicationContext.hasPermission(READ_CONTACTS)
 
-                    CallBlockingRule.Action.BLOCK -> {
-                        response.setDisallowCall(true)
-                    }
+        val enabledRules = ruleList.filter { rule -> rule.enabled }
 
-                    CallBlockingRule.Action.REJECT -> {
-                        response.setDisallowCall(true)
-                        response.setRejectCall(true)
-                    }
+        val simDetectionRequired = enabledRules.any { rule -> rule.cardId != null }
+        val contactStatusRequired = canGetContactStatus && enabledRules.any { rule ->
+            when (rule.target) {
+                CallBlockingRule.Target.EVERYONE -> false
+                CallBlockingRule.Target.NON_CONTACTS -> true
+            }
+        }
+
+        val simCardId: Int? = if (simDetectionRequired && canDetectSim) {
+            val simChecker = SimChecker(applicationContext, callInfo.phoneNumber)
+            val subscription = simChecker.getCachedSubscriptionInfo()
+            subscription?.cardId
+        } else {
+            null
+        }
+
+        val isContact: Boolean? = if (contactStatusRequired) {
+            val contactChecker = ContactChecker(applicationContext, callInfo.phoneNumber)
+            contactChecker.isNumberInContacts
+        } else {
+            null
+        }
+
+        val matchedRules = enabledRules.filter { rule ->
+                rule.cardId == null || rule.cardId == simCardId
+            }.filter { rule ->
+                when (rule.target) {
+                    CallBlockingRule.Target.EVERYONE -> true
+                    CallBlockingRule.Target.NON_CONTACTS -> isContact != true
                 }
             }
-        return response
-    }
 
-    private fun targetMatchesRule(
-        rule: CallBlockingRule,
-        callInfo: CallInfo,
-        contactChecker: ContactChecker?,
-    ): Boolean {
-        return when (rule.target) {
-            CallBlockingRule.Target.EVERYONE -> true
-            CallBlockingRule.Target.NON_CONTACTS -> {
-                // contactChecker is only null when our app doesn't have permission to read contacts.
-                // In that case, all calls sent to onScreenCall are guaranteed by Android to NOT be from contacts.
-                !(contactChecker?.isNumberInContacts ?: false)
+        matchedRules.forEach { rule ->
+            when (rule.action) {
+                CallBlockingRule.Action.SILENCE -> {
+                    response.setSilenceCall(true)
+                }
+
+                CallBlockingRule.Action.BLOCK -> {
+                    response.setDisallowCall(true)
+                }
+
+                CallBlockingRule.Action.REJECT -> {
+                    response.setDisallowCall(true)
+                    response.setRejectCall(true)
+                }
             }
         }
+        return response
     }
-
-    // TODO permission check
-    @SuppressLint("MissingPermission")
-    private suspend fun simMatchesRule(
-        rule: CallBlockingRule,
-        callInfo: CallInfo,
-        simChecker: SimChecker,
-    ): Boolean {
-        if (rule.cardId == null) {
-            return true
-        }
-        // TODO: check for permissions to avoid timeout
-        val subscriptionInfo = simChecker.getCachedSubscriptionInfo()
-            ?: return false // if null, failed to detect the sim card
-        return subscriptionInfo.cardId == rule.cardId
-    }
-
 }

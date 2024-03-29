@@ -1,6 +1,7 @@
 package dev.phonecontrol.service.logic
 
-import android.Manifest
+import android.Manifest.permission.READ_CALL_LOG
+import android.Manifest.permission.READ_PHONE_STATE
 import android.content.Context
 import android.telephony.SubscriptionInfo
 import android.telephony.SubscriptionManager
@@ -15,7 +16,7 @@ class SimChecker(private val context: Context, private val phoneNumber: String) 
     private var executed: Boolean = false
     private var result: SubscriptionInfo? = null
 
-    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+    @RequiresPermission(allOf = [READ_PHONE_STATE, READ_CALL_LOG])
     suspend fun getCachedSubscriptionInfo(): SubscriptionInfo? {
         if (!executed) {
             executed = true
@@ -30,7 +31,7 @@ class SimChecker(private val context: Context, private val phoneNumber: String) 
         return result
     }
 
-    @RequiresPermission(Manifest.permission.READ_PHONE_STATE)
+    @RequiresPermission(allOf = [READ_PHONE_STATE, READ_CALL_LOG])
     private suspend fun getSubscriptionForCallingNumber(phoneNumber: String?): SubscriptionInfo? {
         // TODO handle nulls
         val subscriptionManager = context.getSystemService<SubscriptionManager>()!!
@@ -38,7 +39,8 @@ class SimChecker(private val context: Context, private val phoneNumber: String) 
 
         val subscriptions = subscriptionManager.activeSubscriptionInfoList
         return subscriptions.firstOrNull { subscriptionInfo ->
-            val telephonyManager = defaultTelephonyManager.createForSubscriptionId(subscriptionInfo.subscriptionId)
+            val telephonyManager =
+                defaultTelephonyManager.createForSubscriptionId(subscriptionInfo.subscriptionId)
             val subscriptionPhoneNumber = getPhoneNumberForTelephonyManager(telephonyManager)
             // TODO parallelize
             subscriptionPhoneNumber == phoneNumber
