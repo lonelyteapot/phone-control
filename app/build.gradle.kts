@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "dev.phonecontrol"
-        minSdk = 31 // TODO: revert to 29 after solving the Modifier.blur issue
+        minSdk = 29
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"

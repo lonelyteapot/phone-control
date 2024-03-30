@@ -49,9 +49,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.BlurredEdgeTreatment
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -62,8 +60,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.core.os.LocaleListCompat
 import dev.phonecontrol.R
+import dev.phonecontrol.misc.blurredUnavailable
 import dev.phonecontrol.misc.conditional
-import dev.phonecontrol.misc.gesturesDisabled
 import dev.phonecontrol.ui.components.CustomButton1
 import dev.phonecontrol.ui.components.NewRuleCard
 import dev.phonecontrol.ui.components.RuleCard2
@@ -235,8 +233,7 @@ fun PhoneControlApp(
                         .fillMaxWidth()
                         .weight(1f)
                         .conditional(!permissionsState.hasCallScreeningRole) {
-                            blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
-                                .gesturesDisabled()
+                            blurredUnavailable()
                         },
                     text = stringResource(R.string.perm_read_phone_state_access),
                     checked = permissionsState.hasReadPhoneStatePermission && permissionsState.hasReadCallLogPermission,
@@ -252,8 +249,7 @@ fun PhoneControlApp(
                         .fillMaxWidth()
                         .weight(1f)
                         .conditional(!permissionsState.hasCallScreeningRole) {
-                            blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
-                                .gesturesDisabled()
+                            blurredUnavailable()
                         },
                     text = stringResource(R.string.perm_read_contacts_label),
                     checked = permissionsState.hasReadContactsPermission,
@@ -265,8 +261,7 @@ fun PhoneControlApp(
             Spacer(modifier = Modifier.height(28.dp))
             Column(
                 modifier = Modifier.conditional(!permissionsState.hasCallScreeningRole) {
-                    blur(8.dp, edgeTreatment = BlurredEdgeTreatment.Unbounded)
-                        .gesturesDisabled()
+                    blurredUnavailable()
                 }
             ) {
                 Text(
