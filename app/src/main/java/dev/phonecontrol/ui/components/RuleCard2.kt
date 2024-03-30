@@ -54,7 +54,6 @@ import dev.phonecontrol.domain.model.CallBlockingRule
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.hasPermission
 import dev.phonecontrol.ui.assets.simCardImageVector
-import dev.phonecontrol.ui.views.PermissionsState
 import java.util.UUID
 
 private const val ANIMATION_DURATION_MS = 300
@@ -79,15 +78,13 @@ fun RuleCard2(
     modifier: Modifier = Modifier,
     onUpdateRule: (newRule: CallBlockingRule) -> Unit,
     onDeleteClick: () -> Unit,
-    onNoContactsPermission: () -> Unit = {},
+    onNoContactsPermission: () -> Unit,
+    onNoSimCardAccess: () -> Unit,
     subscription: SubscriptionInfo?,
     subscriptionList: List<SubscriptionInfo>,
-    permissionsState: PermissionsState,
+    canAccessSimCards: Boolean,
 ) {
     val context = LocalContext.current
-    val canAccessSimCards =
-        permissionsState.hasReadPhoneStatePermission && permissionsState.hasReadCallLogPermission
-    val simSwitchEnabled = rule.enabled && (canAccessSimCards || rule.cardId != null)
     val isRuleWorking = rule.enabled && (rule.cardId == null || canAccessSimCards)
 
     fun cycleRuleAction() {
@@ -187,17 +184,20 @@ fun RuleCard2(
                         maxLines = 1,
                         style = MaterialTheme.typography.labelLarge,
                         modifier = Modifier
-                            .padding(start = 2.dp, end = 8.dp)
-                            .conditional(rule.enabled && !simSwitchEnabled) {
-                                alpha(0.38f)
-                            },
+                            .padding(start = 2.dp, end = 8.dp),
                     )
                     RuleSimCardChip(
                         cardId = rule.cardId,
                         cardName = rule.cardName,
                         iconTint = subscription?.iconTint,
-                        enabled = simSwitchEnabled,
-                        onClick = { cycleSimCard() },
+                        enabled = rule.enabled,
+                        onClick = {
+                            if (canAccessSimCards) {
+                                cycleSimCard()
+                            } else {
+                                onNoSimCardAccess()
+                            }
+                        },
                         modifier = Modifier.weight(1f),
                     )
                 }
@@ -452,9 +452,11 @@ private fun RuleCard2Preview() {
         ),
         onUpdateRule = {},
         onDeleteClick = {},
+        onNoContactsPermission = {},
+        onNoSimCardAccess = {},
         subscription = null,
         subscriptionList = emptyList(),
-        permissionsState = PermissionsState.empty(),
+        canAccessSimCards = true,
     )
 }
 
@@ -473,8 +475,10 @@ private fun RuleCard2Preview2() {
         ),
         onUpdateRule = {},
         onDeleteClick = {},
+        onNoContactsPermission = {},
+        onNoSimCardAccess = {},
         subscription = null,
         subscriptionList = emptyList(),
-        permissionsState = PermissionsState.empty(),
+        canAccessSimCards = true,
     )
 }

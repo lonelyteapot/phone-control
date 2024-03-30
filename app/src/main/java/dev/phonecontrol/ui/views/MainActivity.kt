@@ -3,10 +3,8 @@ package dev.phonecontrol.ui.views
 import android.Manifest
 import android.app.role.RoleManager
 import android.os.Bundle
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -35,18 +33,18 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -55,13 +53,24 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.core.content.getSystemService
 import androidx.core.os.LocaleListCompat
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberMultiplePermissionsState
+import com.google.accompanist.permissions.rememberPermissionState
+import com.google.accompanist.permissions.shouldShowRationale
 import dev.phonecontrol.R
 import dev.phonecontrol.misc.blurredUnavailable
 import dev.phonecontrol.misc.conditional
+import dev.phonecontrol.misc.findActivity
+import dev.phonecontrol.misc.openAppSettings
+import dev.phonecontrol.misc.role.rememberRoleState
 import dev.phonecontrol.ui.components.CustomButton1
 import dev.phonecontrol.ui.components.NewRuleCard
 import dev.phonecontrol.ui.components.RuleCard2
@@ -70,7 +79,6 @@ import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
     private lateinit var mainViewModel: MainViewModel
-    private lateinit var permissionsViewModel: PermissionsViewModel
     private lateinit var subscriptionsViewModel: SubscriptionsViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -80,15 +88,13 @@ class MainActivity : AppCompatActivity() {
 
         mainViewModel = MainViewModel(application)
         subscriptionsViewModel = SubscriptionsViewModel(application)
-        permissionsViewModel = PermissionsViewModel(application)
 
         setContent {
             PhoneControlTheme(dynamicColor = false) {
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background
+                    modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background
                 ) {
-                    PhoneControlApp(mainViewModel, permissionsViewModel, subscriptionsViewModel)
+                    PhoneControlApp(mainViewModel, subscriptionsViewModel)
                 }
             }
         }
@@ -96,50 +102,37 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
-        permissionsViewModel.refreshPermissionsState()
         subscriptionsViewModel.refreshSubscriptionsState()
     }
 }
 
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalPermissionsApi::class)
 @Composable
 fun PhoneControlApp(
     viewModel: MainViewModel,
-    permissionsViewModel: PermissionsViewModel,
     subscriptionsViewModel: SubscriptionsViewModel,
 ) {
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-
-    val permissionsState by permissionsViewModel.stateFlow.collectAsState()
 
     val ruleListState = viewModel.ruleListFlow.collectAsState(initial = emptyList())
     val listState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
     val subscriptionsState = subscriptionsViewModel.subscriptionListFlow.collectAsState()
 
-    val requestPermissionLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
-            permissionsViewModel.refreshPermissionsState()
-        }
-    val requestMultiplePermissionsLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { _ ->
-            permissionsViewModel.refreshPermissionsState()
-        }
-    val startActivityForResultLauncher =
-        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) {_ ->
-            permissionsViewModel.refreshPermissionsState()
-        }
+    val callScreeningRoleState = rememberRoleState(RoleManager.ROLE_CALL_SCREENING)
+    val simAccessState = rememberMultiplePermissionsState(
+        listOf(
+            Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG
+        )
+    )
+    val contactsAccessState = rememberPermissionState(Manifest.permission.READ_CONTACTS)
 
-    fun requestCallScreeningRole() {
-        // TODO: handle cases where a device doesn't support the role
-        val roleManager = context.getSystemService<RoleManager>()
-        val intent = roleManager?.createRequestRoleIntent(RoleManager.ROLE_CALL_SCREENING)
-        if (intent != null) {
-            startActivityForResultLauncher.launch(intent)
-        }
-    }
+    var shouldShowCallScreeningRoleDialog by remember { mutableStateOf(false) }
+    var shouldShowSimAccessDialog by remember { mutableStateOf(false) }
+    var shouldShowContactsAccessDialog by remember { mutableStateOf(false) }
+
 
     val supportedLanguageTags = arrayOf("en-US", "ru-RU")
 
@@ -152,23 +145,6 @@ fun PhoneControlApp(
 
         val newLocale = LocaleListCompat.forLanguageTags(nextLanguageTag)
         AppCompatDelegate.setApplicationLocales(newLocale)
-    }
-    
-    suspend fun onTargetClickedButNoContactsPermission() {
-        if (snackbarHostState.currentSnackbarData != null) {
-            return
-        }
-        val snackbarResult = snackbarHostState.showSnackbar(
-            context.getString(R.string.msg_access_to_contacts_is_required_to_use_this),
-            actionLabel = context.getString(R.string.snackbar_allow),
-            duration = SnackbarDuration.Short,
-        )
-        when (snackbarResult) {
-            SnackbarResult.ActionPerformed -> {
-                requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-            }
-            else -> {}
-        }
     }
 
     Scaffold(
@@ -222,48 +198,43 @@ fun PhoneControlApp(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f),
-                    text = stringResource(R.string.perm_call_screening_role_label),
-                    checked = permissionsState.hasCallScreeningRole,
+                    text = stringResource(R.string.label_call_screening_role),
+                    checked = callScreeningRoleState.status.isHeld,
                     onClick = {
-                        requestCallScreeningRole()
+                        shouldShowCallScreeningRoleDialog = true
                     },
                 )
                 CustomButton1(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .conditional(!permissionsState.hasCallScreeningRole) {
+                        .conditional(!callScreeningRoleState.status.isHeld) {
                             blurredUnavailable()
                         },
-                    text = stringResource(R.string.perm_read_phone_state_access),
-                    checked = permissionsState.hasReadPhoneStatePermission && permissionsState.hasReadCallLogPermission,
+                    text = stringResource(R.string.label_sim_card_access),
+                    checked = simAccessState.allPermissionsGranted,
                     onClick = {
-                        requestMultiplePermissionsLauncher.launch(arrayOf(
-                            Manifest.permission.READ_PHONE_STATE,
-                            Manifest.permission.READ_CALL_LOG,
-                        ))
+                        shouldShowSimAccessDialog = true
                     },
                 )
                 CustomButton1(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f)
-                        .conditional(!permissionsState.hasCallScreeningRole) {
+                        .conditional(!callScreeningRoleState.status.isHeld) {
                             blurredUnavailable()
                         },
-                    text = stringResource(R.string.perm_read_contacts_label),
-                    checked = permissionsState.hasReadContactsPermission,
+                    text = stringResource(R.string.label_contacts_access),
+                    checked = contactsAccessState.status.isGranted,
                     onClick = {
-                        requestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+                        shouldShowContactsAccessDialog = true
                     },
                 )
             }
             Spacer(modifier = Modifier.height(28.dp))
-            Column(
-                modifier = Modifier.conditional(!permissionsState.hasCallScreeningRole) {
-                    blurredUnavailable()
-                }
-            ) {
+            Column(modifier = Modifier.conditional(!callScreeningRoleState.status.isHeld) {
+                blurredUnavailable()
+            }) {
                 Text(
                     text = stringResource(id = R.string.rules_header),
                     style = MaterialTheme.typography.headlineSmall,
@@ -272,7 +243,7 @@ fun PhoneControlApp(
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
                         .padding(bottom = 16.dp)
-                        .conditional(!permissionsState.hasCallScreeningRole) {
+                        .conditional(!callScreeningRoleState.status.isHeld) {
                             alpha(0.38f)
                         },
                 )
@@ -289,16 +260,12 @@ fun PhoneControlApp(
                     state = listState,
                     modifier = Modifier
                         .background(
-                            MaterialTheme.colorScheme.background,
-                            shape = shape
+                            MaterialTheme.colorScheme.background, shape = shape
                         )
                         .fillMaxSize()
                         .clip(shape = shape),
                 ) {
-                    items(
-                        items = ruleListState.value,
-                        key = { rule -> rule.uuid }
-                    ) { rule ->
+                    items(items = ruleListState.value, key = { rule -> rule.uuid }) { rule ->
                         val subscription = if (rule.cardId == null) null else {
                             subscriptionsState.value.firstOrNull { subscription ->
                                 subscription.cardId == rule.cardId
@@ -313,13 +280,14 @@ fun PhoneControlApp(
                                 viewModel.deleteRule(rule)
                             },
                             onNoContactsPermission = {
-                                coroutineScope.launch {
-                                    onTargetClickedButNoContactsPermission()
-                                }
+                                shouldShowContactsAccessDialog = true
+                            },
+                            onNoSimCardAccess = {
+                                shouldShowSimAccessDialog = true
                             },
                             subscription = subscription,
                             subscriptionList = subscriptionsState.value,
-                            permissionsState = permissionsState,
+                            canAccessSimCards = simAccessState.allPermissionsGranted,
                             modifier = Modifier.animateItemPlacement(),
                         )
                     }
@@ -335,6 +303,109 @@ fun PhoneControlApp(
                     }
                 }
             }
+        }
+
+        if (shouldShowCallScreeningRoleDialog) {
+            PermissionRequestDialog(
+                title = {
+                    Text(stringResource(R.string.label_call_screening_role))
+                },
+                text = {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(stringResource(R.string.dialog_descr_call_screening_role_1))
+                        Text(stringResource(R.string.dialog_descr_call_screening_role_2))
+                        if (!callScreeningRoleState.status.isHeld) {
+                            Text(buildAnnotatedString {
+                                append(stringResource(R.string.dialog_call_screening_role_desc_action1))
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append(stringResource(R.string.set_as_default_app))
+                                }
+                                append(stringResource(R.string.dialog_call_screening_role_desc_action2))
+                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
+                                    append(stringResource(context.applicationInfo.labelRes))
+                                }
+                                append(stringResource(R.string.dialog_call_screening_role_desc_action3))
+                            })
+                        }
+                    }
+                },
+                confirmButtonText = if (!callScreeningRoleState.status.isHeld) {
+                    stringResource(R.string.set_as_default_app)
+                } else {
+                    stringResource(R.string.ok)
+                },
+                showDismissButton = !callScreeningRoleState.status.isHeld,
+                onDismiss = {
+                    shouldShowCallScreeningRoleDialog = false
+                },
+                onConfirm = {
+                    shouldShowCallScreeningRoleDialog = false
+                    if (callScreeningRoleState.status.isHeld) return@PermissionRequestDialog
+                    callScreeningRoleState.launchRoleRequest()
+                },
+            )
+        } else if (shouldShowSimAccessDialog) {
+            val canRequestNormally = simAccessState.shouldShowRationale
+            PermissionRequestDialog(
+                title = {
+                    Text(stringResource(R.string.label_sim_card_access))
+                },
+                text = {
+                    Text(stringResource(R.string.dialog_descr_sim_card_access))
+                },
+                confirmButtonText = if (simAccessState.allPermissionsGranted) {
+                    stringResource(R.string.ok)
+                } else if (canRequestNormally) {
+                    stringResource(R.string.dialog_perm_allow)
+                } else {
+                    stringResource(R.string.dialog_perm_allow_in_settings)
+                },
+                showDismissButton = !simAccessState.allPermissionsGranted,
+                onDismiss = {
+                    shouldShowSimAccessDialog = false
+                },
+                onConfirm = {
+                    shouldShowSimAccessDialog = false
+                    if (simAccessState.allPermissionsGranted) return@PermissionRequestDialog
+                    if (canRequestNormally) {
+                        simAccessState.launchMultiplePermissionRequest()
+                    } else {
+                        context.findActivity().openAppSettings()
+                    }
+                },
+            )
+        } else if (shouldShowContactsAccessDialog) {
+            val canRequestNormally = contactsAccessState.status.shouldShowRationale
+            PermissionRequestDialog(
+                title = {
+                    Text(stringResource(R.string.label_contacts_access))
+                },
+                text = {
+                    Text(stringResource(R.string.dialog_descr_contacts_access))
+                },
+                confirmButtonText = if (contactsAccessState.status.isGranted) {
+                    stringResource(R.string.ok)
+                } else if (canRequestNormally) {
+                    stringResource(R.string.dialog_perm_allow)
+                } else {
+                    stringResource(R.string.dialog_perm_allow_in_settings)
+                },
+                showDismissButton = !contactsAccessState.status.isGranted,
+                onDismiss = {
+                    shouldShowContactsAccessDialog = false
+                },
+                onConfirm = {
+                    shouldShowContactsAccessDialog = false
+                    if (contactsAccessState.status.isGranted) return@PermissionRequestDialog
+                    if (canRequestNormally) {
+                        contactsAccessState.launchPermissionRequest()
+                    } else {
+                        context.findActivity().openAppSettings()
+                    }
+                },
+            )
         }
     }
 }

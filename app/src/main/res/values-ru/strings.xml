@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Phone Control</string>
-    <string name="perm_call_screening_role_label">Фильтрация звонков</string>
-    <string name="perm_read_contacts_label">Доступ к контактам</string>
+    <string name="label_call_screening_role">Фильтрация звонков</string>
+    <string name="label_contacts_access">Доступ к контактам</string>
     <string name="new_rule">Добавить правило</string>
     <string name="rule_action_silence">Заглушать</string>
     <string name="rule_action_ignore">Пропускать</string>
@@ -15,7 +14,19 @@
     <string name="unknown_sim_card">неизвестную СИМ-карту</string>
     <string name="rules_header">Правила блокировки</string>
     <string name="permissions_header">Разрешения</string>
-    <string name="perm_read_phone_state_access">Доступ к СИМ-картам</string>
+    <string name="label_sim_card_access">Доступ к СИМ-картам</string>
     <string name="msg_access_to_contacts_is_required_to_use_this">Для этого нужен доступ к контактам</string>
     <string name="snackbar_allow">Разрешить</string>
+    <string name="dialog_descr_call_screening_role_1">Чтобы блокировать звонки, приложение должно быть установлено как определитель номеров и защитник от спама по умолчанию.</string>
+    <string name="dialog_descr_sim_card_access">Чтобы определять СИМ-карты, этому приложению нужны разрешения на доступ к Телефону и Списку вызовов.</string>
+    <string name="dialog_descr_contacts_access">Чтобы блокировать звонки от ваших контактов, этому приложению нужно разрешение на доступ к Контактной книге.</string>
+    <string name="dialog_descr_call_screening_role_2">Одновременно на телефоне может работать только одно такое приложение.</string>
+    <string name="dialog_call_screening_role_desc_action1">"Нажмите "</string>
+    <string name="dialog_call_screening_role_desc_action2">", выберите в списке "</string>
+    <string name="dialog_call_screening_role_desc_action3">" и подтвердите ваш выбор."</string>
+    <string name="set_as_default_app">Сделать приложением по умолчанию</string>
+    <string name="not_now">Не сейчас</string>
+    <string name="dialog_perm_allow">Разрешить</string>
+    <string name="dialog_perm_allow_in_settings">Разрешить в Настройках</string>
+    <string name="ok">Хорошо</string>
 </resources>
