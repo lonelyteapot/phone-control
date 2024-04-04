@@ -62,14 +62,11 @@ import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberMultiplePermissionsState
-import com.google.accompanist.permissions.rememberPermissionState
-import com.google.accompanist.permissions.shouldShowRationale
 import dev.phonecontrol.R
 import dev.phonecontrol.misc.blurredUnavailable
 import dev.phonecontrol.misc.conditional
-import dev.phonecontrol.misc.findActivity
-import dev.phonecontrol.misc.openAppSettings
+import dev.phonecontrol.misc.rememberMultiplePermissionsStateWithRetryTimer
+import dev.phonecontrol.misc.rememberPermissionStateWithRetryTimer
 import dev.phonecontrol.misc.role.rememberRoleState
 import dev.phonecontrol.ui.components.CustomButton1
 import dev.phonecontrol.ui.components.NewRuleCard
@@ -122,12 +119,13 @@ fun PhoneControlApp(
     val subscriptionsState = subscriptionsViewModel.subscriptionListFlow.collectAsState()
 
     val callScreeningRoleState = rememberRoleState(RoleManager.ROLE_CALL_SCREENING)
-    val simAccessState = rememberMultiplePermissionsState(
+    val simAccessState = rememberMultiplePermissionsStateWithRetryTimer(
         listOf(
             Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG
         )
     )
-    val contactsAccessState = rememberPermissionState(Manifest.permission.READ_CONTACTS)
+    val contactsAccessState =
+        rememberPermissionStateWithRetryTimer(Manifest.permission.READ_CONTACTS)
 
     var shouldShowCallScreeningRoleDialog by remember { mutableStateOf(false) }
     var shouldShowSimAccessDialog by remember { mutableStateOf(false) }
@@ -347,7 +345,6 @@ fun PhoneControlApp(
                 },
             )
         } else if (shouldShowSimAccessDialog) {
-            val canRequestNormally = simAccessState.shouldShowRationale
             PermissionRequestDialog(
                 title = {
                     Text(stringResource(R.string.label_sim_card_access))
@@ -357,10 +354,8 @@ fun PhoneControlApp(
                 },
                 confirmButtonText = if (simAccessState.allPermissionsGranted) {
                     stringResource(R.string.ok)
-                } else if (canRequestNormally) {
-                    stringResource(R.string.dialog_perm_allow)
                 } else {
-                    stringResource(R.string.dialog_perm_allow_in_settings)
+                    stringResource(R.string.dialog_perm_allow)
                 },
                 showDismissButton = !simAccessState.allPermissionsGranted,
                 onDismiss = {
@@ -368,16 +363,10 @@ fun PhoneControlApp(
                 },
                 onConfirm = {
                     shouldShowSimAccessDialog = false
-                    if (simAccessState.allPermissionsGranted) return@PermissionRequestDialog
-                    if (canRequestNormally) {
-                        simAccessState.launchMultiplePermissionRequest()
-                    } else {
-                        context.findActivity().openAppSettings()
-                    }
+                    simAccessState.launchMultiplePermissionRequest()
                 },
             )
         } else if (shouldShowContactsAccessDialog) {
-            val canRequestNormally = contactsAccessState.status.shouldShowRationale
             PermissionRequestDialog(
                 title = {
                     Text(stringResource(R.string.label_contacts_access))
@@ -387,10 +376,8 @@ fun PhoneControlApp(
                 },
                 confirmButtonText = if (contactsAccessState.status.isGranted) {
                     stringResource(R.string.ok)
-                } else if (canRequestNormally) {
-                    stringResource(R.string.dialog_perm_allow)
                 } else {
-                    stringResource(R.string.dialog_perm_allow_in_settings)
+                    stringResource(R.string.dialog_perm_allow)
                 },
                 showDismissButton = !contactsAccessState.status.isGranted,
                 onDismiss = {
@@ -398,12 +385,7 @@ fun PhoneControlApp(
                 },
                 onConfirm = {
                     shouldShowContactsAccessDialog = false
-                    if (contactsAccessState.status.isGranted) return@PermissionRequestDialog
-                    if (canRequestNormally) {
-                        contactsAccessState.launchPermissionRequest()
-                    } else {
-                        context.findActivity().openAppSettings()
-                    }
+                    contactsAccessState.launchPermissionRequest()
                 },
             )
         }
