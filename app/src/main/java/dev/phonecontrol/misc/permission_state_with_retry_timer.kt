@@ -20,7 +20,7 @@ val DEFAULT_RETRY_THRESHOLD = 1.seconds
 
 @ExperimentalPermissionsApi
 @Composable
-public fun rememberPermissionStateWithRetryTimer(
+fun rememberPermissionStateWithRetryTimer(
     permission: String,
     retryThreshold: Duration = DEFAULT_RETRY_THRESHOLD,
 ): PermissionState {
@@ -43,7 +43,7 @@ public fun rememberPermissionStateWithRetryTimer(
 
 @ExperimentalPermissionsApi
 @Composable
-public fun rememberMultiplePermissionsStateWithRetryTimer(
+fun rememberMultiplePermissionsStateWithRetryTimer(
     permissions: List<String>,
     retryThreshold: Duration = DEFAULT_RETRY_THRESHOLD,
 ): MultiplePermissionsState {
@@ -66,7 +66,7 @@ public fun rememberMultiplePermissionsStateWithRetryTimer(
 }
 
 @Composable
-public fun rememberRoleStateWithRetryTimer(
+fun rememberRoleStateWithRetryTimer(
     roleName: String,
     retryThreshold: Duration = DEFAULT_RETRY_THRESHOLD,
 ): RoleState {
@@ -89,11 +89,11 @@ public fun rememberRoleStateWithRetryTimer(
 
 @ExperimentalPermissionsApi
 @Stable
-public class PermissionStateWithTimer(
+class PermissionStateWithTimer(
     private val base: PermissionState,
     private val onLaunchRequest: () -> Unit,
 ) : PermissionState by base {
-    public override fun launchPermissionRequest(): Unit {
+    override fun launchPermissionRequest(): Unit {
         onLaunchRequest()
         return base.launchPermissionRequest()
     }
@@ -101,7 +101,7 @@ public class PermissionStateWithTimer(
 
 @ExperimentalPermissionsApi
 @Stable
-public class MultiplePermissionsStateWithTimer(
+class MultiplePermissionsStateWithTimer(
     private val base: MultiplePermissionsState,
     private val onLaunchRequest: () -> Unit,
 ) : MultiplePermissionsState by base {
@@ -112,7 +112,7 @@ public class MultiplePermissionsStateWithTimer(
 }
 
 @Stable
-public class RoleStateWithTimer(
+class RoleStateWithTimer(
     private val base: RoleState,
     private val onLaunchRequest: () -> Unit,
 ) : RoleState by base {

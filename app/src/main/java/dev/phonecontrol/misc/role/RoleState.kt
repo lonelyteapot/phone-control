@@ -4,7 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 
 @Composable
-public fun rememberRoleState(
+fun rememberRoleState(
     roleName: String,
     onRoleResult: (Boolean) -> Unit = {},
 ): RoleState {
@@ -12,10 +12,10 @@ public fun rememberRoleState(
 }
 
 @Stable
-public interface RoleState {
-    public val roleName: String
+interface RoleState {
+    val roleName: String
 
-    public val status: RoleStatus
+    val status: RoleStatus
 
-    public fun launchRoleRequest(): Unit
+    fun launchRoleRequest(): Unit
 }

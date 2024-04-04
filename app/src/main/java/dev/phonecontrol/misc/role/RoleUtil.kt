@@ -9,7 +9,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 
 @Stable
-public data class RoleStatus(
+data class RoleStatus(
     val isAvailable: Boolean,
     val isHeld: Boolean,
 )

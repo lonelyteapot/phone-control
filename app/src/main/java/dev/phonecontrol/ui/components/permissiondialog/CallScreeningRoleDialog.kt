@@ -1,6 +1,5 @@
 package dev.phonecontrol.ui.components.permissiondialog
 
-import android.app.role.RoleManager
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
@@ -35,20 +34,6 @@ fun CallScreeningRoleDialog(
                 append(".")
             })
             Text(stringResource(R.string.call_screening_role_dialog_2))
-//            if (!roleState.status.isHeld) {
-//                Text(buildAnnotatedString {
-//                    append(stringResource(R.string.dialog_call_screening_role_desc_action1))
-//                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-//                        append(stringResource(R.string.set_as_default_app))
-////                        append(stringResource(RoleManager.ROLE_CALL_SCREENING))
-//                    }
-//                    append(stringResource(R.string.dialog_call_screening_role_desc_action2))
-//                    withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-//                        append(stringResource(context.applicationInfo.labelRes))
-//                    }
-//                    append(stringResource(R.string.dialog_call_screening_role_desc_action3))
-//                })
-//            }
         },
         confirmButtonLabel = {
             stringResource(R.string.set_as_default_app)
