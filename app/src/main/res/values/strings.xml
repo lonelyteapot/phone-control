@@ -17,16 +17,22 @@
     <string name="label_sim_card_access">Access to SIM cards</string>
     <string name="msg_access_to_contacts_is_required_to_use_this">Access to contacts is required to use this</string>
     <string name="snackbar_allow">Allow</string>
-    <string name="dialog_descr_call_screening_role_1"><![CDATA[To filter and block calls, this application needs to be set as your default caller ID & spam app.]]></string>
-    <string name="dialog_descr_sim_card_access">To detect SIM cards, this app needs permission to access your Phone and Call logs.</string>
-    <string name="dialog_descr_contacts_access">To block calls from your contacts, this app needs permission to access the contact book.</string>
-    <string name="dialog_descr_call_screening_role_2">You can only have one such app enabled on your device at a time.</string>
+    <string name="call_screening_role_dialog_1">"To detect and block calls, %s application needs to be set as your "</string>
+    <string name="sim_card_access_dialog_1">"To detect individual SIM cards, %s application needs permissions to "</string>
+    <string name="contacts_access_dialog_1">"To detect and block calls from your contacts, %s application needs a permission to "</string>
+    <string name="call_screening_role_dialog_2">You can only have one such application enabled on your device.</string>
     <string name="dialog_call_screening_role_desc_action1">"Click "</string>
     <string name="dialog_call_screening_role_desc_action2">", then select "</string>
     <string name="dialog_call_screening_role_desc_action3">" and confirm your choice."</string>
-    <string name="set_as_default_app">Set as default app</string>
+    <string name="set_as_default_app">Set as default</string>
     <string name="not_now">Not now</string>
     <string name="dialog_perm_allow">Allow</string>
     <string name="dialog_perm_allow_in_settings">Allow in Settings</string>
     <string name="ok">OK</string>
+    <string name="contacts_access_dialog_2">You\'ve already granted it.</string>
+    <string name="permissions_are_granted">Permissions are obtained</string>
+    <string name="permissions_required">Permissions required</string>
+    <string name="sim_card_access_dialog_2">" and "</string>
+    <string name="sim_card_access_dialog_3">You\'ve already granted them.</string>
+    <string name="call_screening_role_dialog_3"><![CDATA[default caller ID & spam app]]></string>
 </resources>

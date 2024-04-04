@@ -40,24 +40,17 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
@@ -67,10 +60,13 @@ import dev.phonecontrol.misc.blurredUnavailable
 import dev.phonecontrol.misc.conditional
 import dev.phonecontrol.misc.rememberMultiplePermissionsStateWithRetryTimer
 import dev.phonecontrol.misc.rememberPermissionStateWithRetryTimer
-import dev.phonecontrol.misc.role.rememberRoleState
+import dev.phonecontrol.misc.rememberRoleStateWithRetryTimer
 import dev.phonecontrol.ui.components.CustomButton1
 import dev.phonecontrol.ui.components.NewRuleCard
 import dev.phonecontrol.ui.components.RuleCard2
+import dev.phonecontrol.ui.components.permissiondialog.CallScreeningRoleDialog
+import dev.phonecontrol.ui.components.permissiondialog.ContactsAccessDialog
+import dev.phonecontrol.ui.components.permissiondialog.SimCardAccessDialog
 import dev.phonecontrol.ui.theme.PhoneControlTheme
 import kotlinx.coroutines.launch
 
@@ -110,7 +106,6 @@ fun PhoneControlApp(
     viewModel: MainViewModel,
     subscriptionsViewModel: SubscriptionsViewModel,
 ) {
-    val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
 
     val ruleListState = viewModel.ruleListFlow.collectAsState(initial = emptyList())
@@ -118,7 +113,7 @@ fun PhoneControlApp(
     val snackbarHostState = remember { SnackbarHostState() }
     val subscriptionsState = subscriptionsViewModel.subscriptionListFlow.collectAsState()
 
-    val callScreeningRoleState = rememberRoleState(RoleManager.ROLE_CALL_SCREENING)
+    val callScreeningRoleState = rememberRoleStateWithRetryTimer(RoleManager.ROLE_CALL_SCREENING)
     val simAccessState = rememberMultiplePermissionsStateWithRetryTimer(
         listOf(
             Manifest.permission.READ_PHONE_STATE, Manifest.permission.READ_CALL_LOG
@@ -127,9 +122,9 @@ fun PhoneControlApp(
     val contactsAccessState =
         rememberPermissionStateWithRetryTimer(Manifest.permission.READ_CONTACTS)
 
-    var shouldShowCallScreeningRoleDialog by remember { mutableStateOf(false) }
-    var shouldShowSimAccessDialog by remember { mutableStateOf(false) }
-    var shouldShowContactsAccessDialog by remember { mutableStateOf(false) }
+    val shouldShowCallScreeningRoleDialogState = remember { mutableStateOf(false) }
+    val shouldShowSimAccessDialogState = remember { mutableStateOf(false) }
+    val shouldShowContactsAccessDialogState = remember { mutableStateOf(false) }
 
 
     val supportedLanguageTags = arrayOf("en-US", "ru-RU")
@@ -199,7 +194,7 @@ fun PhoneControlApp(
                     text = stringResource(R.string.label_call_screening_role),
                     checked = callScreeningRoleState.status.isHeld,
                     onClick = {
-                        shouldShowCallScreeningRoleDialog = true
+                        shouldShowCallScreeningRoleDialogState.value = true
                     },
                 )
                 CustomButton1(
@@ -212,7 +207,7 @@ fun PhoneControlApp(
                     text = stringResource(R.string.label_sim_card_access),
                     checked = simAccessState.allPermissionsGranted,
                     onClick = {
-                        shouldShowSimAccessDialog = true
+                        shouldShowSimAccessDialogState.value = true
                     },
                 )
                 CustomButton1(
@@ -225,7 +220,7 @@ fun PhoneControlApp(
                     text = stringResource(R.string.label_contacts_access),
                     checked = contactsAccessState.status.isGranted,
                     onClick = {
-                        shouldShowContactsAccessDialog = true
+                        shouldShowContactsAccessDialogState.value = true
                     },
                 )
             }
@@ -278,10 +273,10 @@ fun PhoneControlApp(
                                 viewModel.deleteRule(rule)
                             },
                             onNoContactsPermission = {
-                                shouldShowContactsAccessDialog = true
+                                shouldShowContactsAccessDialogState.value = true
                             },
                             onNoSimCardAccess = {
-                                shouldShowSimAccessDialog = true
+                                shouldShowSimAccessDialogState.value = true
                             },
                             subscription = subscription,
                             subscriptionList = subscriptionsState.value,
@@ -303,90 +298,20 @@ fun PhoneControlApp(
             }
         }
 
-        if (shouldShowCallScreeningRoleDialog) {
-            PermissionRequestDialog(
-                title = {
-                    Text(stringResource(R.string.label_call_screening_role))
-                },
-                text = {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(stringResource(R.string.dialog_descr_call_screening_role_1))
-                        Text(stringResource(R.string.dialog_descr_call_screening_role_2))
-                        if (!callScreeningRoleState.status.isHeld) {
-                            Text(buildAnnotatedString {
-                                append(stringResource(R.string.dialog_call_screening_role_desc_action1))
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append(stringResource(R.string.set_as_default_app))
-                                }
-                                append(stringResource(R.string.dialog_call_screening_role_desc_action2))
-                                withStyle(SpanStyle(fontWeight = FontWeight.Bold)) {
-                                    append(stringResource(context.applicationInfo.labelRes))
-                                }
-                                append(stringResource(R.string.dialog_call_screening_role_desc_action3))
-                            })
-                        }
-                    }
-                },
-                confirmButtonText = if (!callScreeningRoleState.status.isHeld) {
-                    stringResource(R.string.set_as_default_app)
-                } else {
-                    stringResource(R.string.ok)
-                },
-                showDismissButton = !callScreeningRoleState.status.isHeld,
-                onDismiss = {
-                    shouldShowCallScreeningRoleDialog = false
-                },
-                onConfirm = {
-                    shouldShowCallScreeningRoleDialog = false
-                    if (callScreeningRoleState.status.isHeld) return@PermissionRequestDialog
-                    callScreeningRoleState.launchRoleRequest()
-                },
+        if (shouldShowCallScreeningRoleDialogState.value) {
+            CallScreeningRoleDialog(
+                roleState = callScreeningRoleState,
+                shouldShowState = shouldShowCallScreeningRoleDialogState,
             )
-        } else if (shouldShowSimAccessDialog) {
-            PermissionRequestDialog(
-                title = {
-                    Text(stringResource(R.string.label_sim_card_access))
-                },
-                text = {
-                    Text(stringResource(R.string.dialog_descr_sim_card_access))
-                },
-                confirmButtonText = if (simAccessState.allPermissionsGranted) {
-                    stringResource(R.string.ok)
-                } else {
-                    stringResource(R.string.dialog_perm_allow)
-                },
-                showDismissButton = !simAccessState.allPermissionsGranted,
-                onDismiss = {
-                    shouldShowSimAccessDialog = false
-                },
-                onConfirm = {
-                    shouldShowSimAccessDialog = false
-                    simAccessState.launchMultiplePermissionRequest()
-                },
+        } else if (shouldShowSimAccessDialogState.value) {
+            SimCardAccessDialog(
+                permissionState = simAccessState,
+                shouldShowState = shouldShowSimAccessDialogState,
             )
-        } else if (shouldShowContactsAccessDialog) {
-            PermissionRequestDialog(
-                title = {
-                    Text(stringResource(R.string.label_contacts_access))
-                },
-                text = {
-                    Text(stringResource(R.string.dialog_descr_contacts_access))
-                },
-                confirmButtonText = if (contactsAccessState.status.isGranted) {
-                    stringResource(R.string.ok)
-                } else {
-                    stringResource(R.string.dialog_perm_allow)
-                },
-                showDismissButton = !contactsAccessState.status.isGranted,
-                onDismiss = {
-                    shouldShowContactsAccessDialog = false
-                },
-                onConfirm = {
-                    shouldShowContactsAccessDialog = false
-                    contactsAccessState.launchPermissionRequest()
-                },
+        } else if (shouldShowContactsAccessDialogState.value) {
+            ContactsAccessDialog(
+                permissionState = contactsAccessState,
+                shouldShowState = shouldShowContactsAccessDialogState,
             )
         }
     }

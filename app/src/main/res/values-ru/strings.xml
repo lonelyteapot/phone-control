@@ -17,10 +17,10 @@
     <string name="label_sim_card_access">Доступ к СИМ-картам</string>
     <string name="msg_access_to_contacts_is_required_to_use_this">Для этого нужен доступ к контактам</string>
     <string name="snackbar_allow">Разрешить</string>
-    <string name="dialog_descr_call_screening_role_1">Чтобы блокировать звонки, приложение должно быть установлено как определитель номеров и защитник от спама по умолчанию.</string>
-    <string name="dialog_descr_sim_card_access">Чтобы определять СИМ-карты, этому приложению нужны разрешения на доступ к Телефону и Списку вызовов.</string>
-    <string name="dialog_descr_contacts_access">Чтобы блокировать звонки от ваших контактов, этому приложению нужно разрешение на доступ к Контактной книге.</string>
-    <string name="dialog_descr_call_screening_role_2">Одновременно на телефоне может работать только одно такое приложение.</string>
+    <string name="call_screening_role_dialog_1">"Чтобы распознавать и блокировать звонки, приложение %s должно быть установлено как "</string>
+    <string name="sim_card_access_dialog_1">"Чтобы распознавать СИМ-карты, приложению %s нужны разрешения "</string>
+    <string name="contacts_access_dialog_1">Чтобы распознавать и блокировать звонки от ваших контактов, приложению %s нужно разрешение</string>
+    <string name="call_screening_role_dialog_2">Одновременно на телефоне может работать только одно такое приложение.</string>
     <string name="dialog_call_screening_role_desc_action1">"Нажмите "</string>
     <string name="dialog_call_screening_role_desc_action2">", выберите в списке "</string>
     <string name="dialog_call_screening_role_desc_action3">" и подтвердите ваш выбор."</string>
@@ -29,4 +29,10 @@
     <string name="dialog_perm_allow">Разрешить</string>
     <string name="dialog_perm_allow_in_settings">Разрешить в Настройках</string>
     <string name="ok">Хорошо</string>
+    <string name="contacts_access_dialog_2">Оно уже получено.</string>
+    <string name="permissions_are_granted">Разрешения получены</string>
+    <string name="permissions_required">Нужны разрешения</string>
+    <string name="sim_card_access_dialog_2">" и "</string>
+    <string name="sim_card_access_dialog_3">Они уже получены.</string>
+    <string name="call_screening_role_dialog_3">определитель номеров и защитник от спама по умолчанию</string>
 </resources>

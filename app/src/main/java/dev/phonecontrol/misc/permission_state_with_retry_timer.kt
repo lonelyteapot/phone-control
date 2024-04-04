@@ -9,6 +9,8 @@ import com.google.accompanist.permissions.MultiplePermissionsState
 import com.google.accompanist.permissions.PermissionState
 import com.google.accompanist.permissions.rememberMultiplePermissionsState
 import com.google.accompanist.permissions.rememberPermissionState
+import dev.phonecontrol.misc.role.RoleState
+import dev.phonecontrol.misc.role.rememberRoleState
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.nanoseconds
 import kotlin.time.Duration.Companion.seconds
@@ -63,6 +65,28 @@ public fun rememberMultiplePermissionsStateWithRetryTimer(
     })
 }
 
+@Composable
+public fun rememberRoleStateWithRetryTimer(
+    roleName: String,
+    retryThreshold: Duration = DEFAULT_RETRY_THRESHOLD,
+): RoleState {
+    val context = LocalContext.current
+    val timerState = remember {
+        MutableTimerState(threshold = retryThreshold, onFailedFasterThanThreshold = {
+            context.findActivity().openDefaultAppsSettings()
+        })
+    }
+    val baseState = rememberRoleState(
+        roleName = roleName,
+        onRoleResult = { isGranted ->
+            timerState.onPermissionResult(isGranted)
+        },
+    )
+    return RoleStateWithTimer(baseState, onLaunchRequest = {
+        timerState.onLaunchRequest()
+    })
+}
+
 @ExperimentalPermissionsApi
 @Stable
 public class PermissionStateWithTimer(
@@ -84,6 +108,17 @@ public class MultiplePermissionsStateWithTimer(
     override fun launchMultiplePermissionRequest() {
         onLaunchRequest()
         return base.launchMultiplePermissionRequest()
+    }
+}
+
+@Stable
+public class RoleStateWithTimer(
+    private val base: RoleState,
+    private val onLaunchRequest: () -> Unit,
+) : RoleState by base {
+    override fun launchRoleRequest() {
+        onLaunchRequest()
+        return base.launchRoleRequest()
     }
 }
 

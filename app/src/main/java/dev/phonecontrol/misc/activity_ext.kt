@@ -11,3 +11,9 @@ fun Activity.openAppSettings() {
         Uri.fromParts("package", packageName, null)
     ).also(::startActivity)
 }
+
+fun Activity.openDefaultAppsSettings() {
+    Intent(
+        Settings.ACTION_MANAGE_DEFAULT_APPS_SETTINGS,
+    ).also(::startActivity)
+}
